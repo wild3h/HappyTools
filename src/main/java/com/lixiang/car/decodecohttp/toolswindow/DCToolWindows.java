@@ -11,21 +11,22 @@ import com.lixiang.car.decodecohttp.decodecohttp.util.NotifyUtil;
 import com.lixiang.car.decodecohttp.util.CodeManager;
 
 import javax.swing.*;
+import javax.swing.event.DocumentListener;
+import java.awt.event.InputMethodEvent;
+import java.awt.event.InputMethodListener;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DCToolWindows {
     private JEditorPane editerText;
     private JButton btnDecode;
     private JPanel contentPanel;
-    private JPanel submitContainer;
     private JPanel resContainer;
     private JScrollPane resScroll;
     private JButton openInFile;
+    private JButton btnClear;
     private EditorTextField resText;
 
     public DCToolWindows(Project project, ToolWindow toolWindow) {
-
-
         AtomicReference<String> res = new AtomicReference<>("");
         btnDecode.addActionListener(e -> {
             if (editerText.getText().isEmpty()) {
@@ -42,6 +43,12 @@ public class DCToolWindows {
                 return;
             }
             CodeManager.openCode(project, res.get());
+        });
+
+        btnClear.addActionListener(e->{
+            editerText.setText("");
+            res.set("");
+            resText.setText("");
         });
 
         resText = new EditorTextField(EditorFactory.getInstance().createDocument(""), project, JsonFileType.INSTANCE, true, false);

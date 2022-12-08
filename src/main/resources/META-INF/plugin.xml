@@ -31,8 +31,10 @@
     <actions>
         <action id="DecodeCohttp" class="com.lixiang.car.decodecohttp.decodecohttp.action.EditorAction" text="DecodeCohttp"
                 description="解析cohttp返回数据">
-            <add-to-group group-id="EditorPopupMenu" anchor="first"/>
-            <keyboard-shortcut keymap="$default" first-keystroke="ctrl 1"/>
+            <add-to-group group-id="ConsoleEditorPopupMenu" anchor="first"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="control 1"/>
+            <keyboard-shortcut keymap="Mac OS X" first-keystroke="control 1" replace-all="true"/>
+            <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="control 1" replace-all="true"/>
         </action>
     </actions>
 </idea-plugin>
