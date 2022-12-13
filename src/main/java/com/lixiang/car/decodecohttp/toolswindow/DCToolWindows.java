@@ -56,6 +56,8 @@ public class DCToolWindows {
         GridConstraints constraints = new GridConstraints();
         constraints.setFill(GridConstraints.FILL_BOTH);
         resContainer.add(resText, constraints);
+
+        editerText.setName("editerText");
     }
 
     public JPanel getContentPanel() {

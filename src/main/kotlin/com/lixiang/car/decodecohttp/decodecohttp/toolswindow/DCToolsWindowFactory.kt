@@ -7,6 +7,7 @@ import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentFactory
+import com.intellij.ui.dsl.builder.panel
 import com.lixiang.car.decodecohttp.decodecohttp.util.PluginConstant
 import com.lixiang.car.decodecohttp.toolswindow.DCToolWindows
 
@@ -21,6 +22,10 @@ class DCToolsWindowFactory : ToolWindowFactory {
     }
 
     private fun createContent(project: Project,toolWindow: ToolWindow): Content {
+        panel {
+
+        }
+
         val contentFactory = ContentFactory.SERVICE.getInstance()
         val content = contentFactory.createContent(DCToolWindows(project,toolWindow).contentPanel, "", false)
         return content
