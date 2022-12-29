@@ -18,7 +18,11 @@ intellij {
     version.set("2021.3.3")
     type.set("IC") // Target IDE Platform
 
-    plugins.set(listOf())
+    plugins.set(listOf("com.intellij.java"))
+}
+
+dependencies{
+    implementation("com.sealwu.jsontokotlin:library:3.7.4")
 }
 
 tasks {

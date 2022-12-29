@@ -1,5 +1,6 @@
 package com.lixiang.car.decodecohttp.toolswindow;
 
+import cn.yiiguxing.plugin.translate.util.StringsKt;
 import com.intellij.json.JsonFileType;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.project.Project;
@@ -33,7 +34,7 @@ public class DCToolWindows {
                 NotifyUtil.INSTANCE.notifyMessage("请先输入数据");
                 return;
             }
-            res.set(UnZipFormator.format(editerText.getText()));
+            res.set(UnZipFormator.format(StringsKt.legal(editerText.getText())));
             resText.setText(res.get());
         });
 

@@ -3,6 +3,7 @@ package com.lixiang.car.decodecohttp.decodecohttp.util
 import java.awt.Component
 import java.awt.Container
 import java.util.Stack
+import javax.swing.JComponent
 
 object ViewUtils {
     inline fun <reified T : Component?> Container.findComponentByName(name: String): T? {
@@ -22,4 +23,8 @@ object ViewUtils {
         } while (stack.isNotEmpty())
         return result
     }
+}
+
+operator fun JComponent.plusAssign(component: JComponent){
+    this.add(component)
 }

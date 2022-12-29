@@ -1,5 +1,6 @@
 package com.lixiang.car.decodecohttp.decodecohttp.action
 
+import cn.yiiguxing.plugin.translate.util.legal
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.editor.Editor
@@ -32,7 +33,7 @@ class EditorAction : AutoSelectAction(true) {
         } else {
             text = editor.document.getText(selectionRange)
         }
-        val formatText = text.replace("*", "").replace(" ", "").replace("\n", "").replace("\t", "")
+        val formatText = text.legal()
         notifyText("select--$formatText")
         if (project != null) {
             val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(DCToolsWindowFactory.ID)

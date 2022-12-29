@@ -20,6 +20,7 @@
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
 
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
@@ -29,12 +30,24 @@
     </extensions>
 
     <actions>
-        <action id="DecodeCohttp" class="com.lixiang.car.decodecohttp.decodecohttp.action.EditorAction" text="DecodeCohttp"
-                description="解析cohttp返回数据">
+        <action id="DecodeCohttp" class="com.lixiang.car.decodecohttp.decodecohttp.action.EditorAction"
+                text="DecodeCohttp" description="解析cohttp返回数据">
             <add-to-group group-id="ConsoleEditorPopupMenu" anchor="first"/>
             <keyboard-shortcut keymap="$default" first-keystroke="control 1"/>
             <keyboard-shortcut keymap="Mac OS X" first-keystroke="control 1" replace-all="true"/>
             <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="control 1" replace-all="true"/>
+        </action>
+        <action id="JsonFormat" class="com.lixiang.car.decodecohttp.decodecohttp.action.JsonFormatAction"
+                text="JsonFormat" description="格式化JSON数据" icon="Icons.JsonFormatIcon">
+            <add-to-group group-id="NavBarToolBar" relative-to-action="RunAnything" anchor="before"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="control 2"/>
+            <keyboard-shortcut keymap="Mac OS X" first-keystroke="control 2" replace-all="true"/>
+            <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="control 2" replace-all="true"/>
+        </action>
+        <action id="NewClassAction" class="com.lixiang.car.decodecohttp.decodecohttp.action.NewClassAction"
+                text="NewClassAction" description="根据JSON解析出DataClass">
+            <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFile"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl 2"/>
         </action>
     </actions>
 </idea-plugin>

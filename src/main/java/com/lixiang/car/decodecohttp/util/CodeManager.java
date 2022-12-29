@@ -9,14 +9,17 @@ import java.io.File;
  */
 public class CodeManager {
 
+    @Deprecated
     public static void openCode(Project project, String text) {
+        openCode(project, text,"test.json");
+    }
 
-
-        String filePath = FileUtils.defaultFileFolder() + File.separator + "decodeCohttp" + File.separator + "test.json";
+    public static void openCode(Project project, String text,String fileName) {
+        String filePath = FileUtils.defaultFileFolder() + File.separator + "decodeCohttp" + File.separator + fileName;
 
         File file = new File(filePath);
         if (file.exists()) {
-           file.delete();
+            file.delete();
         }
         try {
             FileUtils.saveFile(file, text);

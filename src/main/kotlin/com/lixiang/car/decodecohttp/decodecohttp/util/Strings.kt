@@ -5,9 +5,12 @@
 
 package cn.yiiguxing.plugin.translate.util
 
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonElement
+import com.google.gson.JsonParser
 import com.intellij.util.io.DigestUtil
 import java.net.URLEncoder
-import java.security.MessageDigest
 import java.util.*
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
@@ -181,4 +184,25 @@ fun String.hmacSha1(key: String): String {
     val secretKeySpec = SecretKeySpec(key.toByteArray(), mac.algorithm)
     mac.init(secretKeySpec)
     return Base64.getEncoder().encodeToString(mac.doFinal(toByteArray()))
+}
+
+fun String.legal():String{
+    return this.replace("*", "").replace(" ", "").replace("\n", "").replace("\t", "")
+}
+
+fun String.isJSONSchema(): Boolean {
+    val jsonElement = Gson().fromJson(this, JsonElement::class.java)
+    return if (jsonElement.isJsonObject) {
+        with(jsonElement.asJsonObject) {
+            has("\$schema")
+        }
+    } else {
+        false
+    }
+}
+
+fun String.jsonFormat(): String {
+    val jsonObject = JsonParser.parseString(this).asJsonObject
+    val gson = GsonBuilder().setPrettyPrinting().create()
+    return gson.toJson(jsonObject)
 }
