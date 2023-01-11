@@ -3,15 +3,16 @@
  */
 @file:Suppress("unused")
 
-package cn.yiiguxing.plugin.translate.util
+package com.lixiang.car.decodecohttp.decodecohttp.util
 
-import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.google.gson.JsonElement
 import com.google.gson.JsonParser
 import com.intellij.util.io.DigestUtil
+import com.lixiang.car.decodecohttp.decode.UnZipFormator
 import java.net.URLEncoder
 import java.util.*
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
@@ -32,10 +33,10 @@ private const val REPLACEMENT_SPLIT_GROUP = "$1 $2"
  */
 fun String.splitWords(): String {
     return replace(REGEX_UNDERLINE, REPLACEMENT_SPLIT_GROUP)
-        .replace(REGEX_NUM_WORD, REPLACEMENT_SPLIT_GROUP)
-        .replace(REGEX_WORD_NUM, REPLACEMENT_SPLIT_GROUP)
-        .replace(REGEX_LOWER_UPPER, REPLACEMENT_SPLIT_GROUP)
-        .replace(REGEX_UPPER_WORD, REPLACEMENT_SPLIT_GROUP)
+            .replace(REGEX_NUM_WORD, REPLACEMENT_SPLIT_GROUP)
+            .replace(REGEX_WORD_NUM, REPLACEMENT_SPLIT_GROUP)
+            .replace(REGEX_LOWER_UPPER, REPLACEMENT_SPLIT_GROUP)
+            .replace(REGEX_UPPER_WORD, REPLACEMENT_SPLIT_GROUP)
 }
 
 
@@ -83,10 +84,10 @@ fun <C : MutableCollection<String>> String.splitSentenceTo(destination: C, maxSe
 }
 
 private fun <C : MutableCollection<String>> String.splitSentenceTo(
-    destination: C,
-    maxSentenceLength: Int,
-    splitFun: String.() -> List<String>,
-    reSplitFun: String.(C) -> Unit
+        destination: C,
+        maxSentenceLength: Int,
+        splitFun: String.() -> List<String>,
+        reSplitFun: String.(C) -> Unit
 ): C {
     val sentences = splitFun()
     val sentenceBuilder = StringBuilder()
@@ -166,7 +167,7 @@ fun String.ellipsis(n: Int): String {
 fun String.urlEncode(): String = if (isEmpty()) this else URLEncoder.encode(this, "UTF-8")
 
 private val HEX_DIGITS = charArrayOf(
-    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
 )
 
 /**
@@ -186,18 +187,15 @@ fun String.hmacSha1(key: String): String {
     return Base64.getEncoder().encodeToString(mac.doFinal(toByteArray()))
 }
 
-fun String.legal():String{
-    return this.replace("*", "").replace(" ", "").replace("\n", "").replace("\t", "")
-}
+fun String.legal(simple: Boolean = false): String {
 
-fun String.isJSONSchema(): Boolean {
-    val jsonElement = Gson().fromJson(this, JsonElement::class.java)
-    return if (jsonElement.isJsonObject) {
-        with(jsonElement.asJsonObject) {
-            has("\$schema")
+    return if (!simple) {
+        val extracted = UnZipFormator.extracted(this)
+        extracted.ifEmpty {
+            this
         }
     } else {
-        false
+        this.replace("*", "").replace(" ", "").replace("\n", "").replace("\t", "")
     }
 }
 

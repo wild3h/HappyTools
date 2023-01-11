@@ -22,10 +22,6 @@ class DCToolsWindowFactory : ToolWindowFactory {
     }
 
     private fun createContent(project: Project,toolWindow: ToolWindow): Content {
-        panel {
-
-        }
-
         val contentFactory = ContentFactory.SERVICE.getInstance()
         val content = contentFactory.createContent(DCToolWindows(project,toolWindow).contentPanel, "", false)
         return content

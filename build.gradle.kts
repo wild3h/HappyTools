@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.lixiang.car.decodeCohttp"
-version = "1.0.1-alpha"
+version = "1.0.3-alpha"
 
 repositories {
     maven("https://maven.aliyun.com/repository/central")

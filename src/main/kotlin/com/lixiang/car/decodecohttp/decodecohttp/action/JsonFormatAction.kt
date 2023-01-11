@@ -6,6 +6,6 @@ import com.lixiang.car.decodecohttp.util.CodeManager
 
 class JsonFormatAction : AnAction() {
     override fun actionPerformed(e: AnActionEvent) {
-        CodeManager.openCode(e.project,"","formatRes.json")
+
     }
 }
