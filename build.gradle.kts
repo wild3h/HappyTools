@@ -4,8 +4,8 @@ plugins {
     id("org.jetbrains.intellij") version "1.8.0"
 }
 
-group = "com.lixiang.car.decodeCohttp"
-version = "1.0.3-alpha"
+group = "com.lixiang.car.happytools"
+version = "1.0.0-alpha"
 
 repositories {
     maven("https://maven.aliyun.com/repository/central")
