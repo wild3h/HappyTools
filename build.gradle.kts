@@ -7,9 +7,20 @@ plugins {
 group = "com.lixiang.car.happytools"
 version = "1.0.0-alpha"
 
+buildscript {
+    repositories {
+        maven("https://maven.aliyun.com/repository/public")
+        maven("https://maven.aliyun.com/repository/gradle-plugin")
+    }
+}
 repositories {
-    maven("https://maven.aliyun.com/repository/central")
+    mavenLocal()
     mavenCentral()
+    maven("https://maven.aliyun.com/repository/public")
+    maven("https://maven.aliyun.com/repository/gradle-plugin")
+    maven("https://www.jetbrains.com/intellij-repository/releases")
+    maven("https://cache-redirector.jetbrains.com/intellij-dependencies")
+    google()
 }
 
 // Configure Gradle IntelliJ Plugin
@@ -23,6 +34,7 @@ intellij {
 
 dependencies{
     implementation("com.sealwu.jsontokotlin:library:3.7.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 }
 
 tasks {

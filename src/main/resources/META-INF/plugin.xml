@@ -25,11 +25,12 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-
+        <toolWindow factoryClass="com.lixiang.car.happytools.tools.toolswindowfactory.DiagramToolWindow"
+                    id="happyTools" anchor="right" secondary="false"/>
     </extensions>
 
     <actions>
-        <action id="NewClassAction" class="com.lixiang.car.decodecohttp.decodecohttp.action.NewClassAction"
+        <action id="NewClassToolsAction" class="com.lixiang.car.happytools.tools.action.NewClassAction"
                 text="NewClassAction" description="根据JSON解析出DataClass">
             <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFile"/>
             <keyboard-shortcut keymap="$default" first-keystroke="meta alt B"/>
