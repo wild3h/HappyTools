@@ -102,8 +102,8 @@ object DownloadManager {
                                             val dateFormat = SimpleDateFormat(timePattern)
                                             val date = dateFormat.parse(time)
                                             val timestamp = date?.time ?: 0
-                                            println(timestamp)
-                                            listData.add(SequenceDiagramElement(timestamp, line.toString(), line.toString()))
+                                            val charAt = line.toString().indexOf(':',38)
+                                            listData.add(SequenceDiagramElement(timestamp, line.toString().substring(38,charAt), line.toString().substring(charAt+1)))
 
                                         }
                                     }
