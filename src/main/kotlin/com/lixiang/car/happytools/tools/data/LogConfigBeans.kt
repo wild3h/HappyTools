@@ -5,5 +5,7 @@ data class LogConfigBeans(
         var log_type: String,
         var time_end_date: String,
         var time_start_date: String,
+        var time_end_time: String,
+        var time_start_time: String,
         var vin: String
 )

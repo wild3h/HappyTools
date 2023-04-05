@@ -31,6 +31,8 @@ class SequenceDiagramPanel : JPanel() {
     private var drawXStart = 0
     private var elements = ArrayList<SequenceDiagramElement>()
     private var drawElements = ArrayList<SeqLifecycle>()
+    var lifecycleList: List<String> = ArrayList<String>()
+    var drawLifecycleList: List<String> = ArrayList<String>()
     private var lastLifecycle: String? = null
     private var scrollNum: Double = 0.0
     private var lastY: Int = OPERATION_SPLIT_Y + SEQ_HEIGHT + 20 - (scrollNum * 20).toInt()
@@ -44,7 +46,8 @@ class SequenceDiagramPanel : JPanel() {
             val isScrollEvent = JBScrollPane.isScrollEvent(it)
             val isFromSeqPanel = it.source is SequenceDiagramPanel
             if (isScrollEvent && isFromSeqPanel) {
-                scrollNum = (scrollNum + it.preciseWheelRotation).coerceAtLeast(0.0).coerceAtMost(getMaxScrollNum().toDouble())
+                scrollNum =
+                    (scrollNum + it.preciseWheelRotation).coerceAtLeast(0.0).coerceAtMost(getMaxScrollNum().toDouble())
                 repaint()
             }
         }
@@ -56,7 +59,6 @@ class SequenceDiagramPanel : JPanel() {
                     val moveY = lastClickY!! - currentY
                     val moveX = currentX - lastClickX!!
                     drawXStart = (drawXStart + moveX).coerceAtMost(0)
-                    println("$scrollNum，${getMaxScrollNum()}")
                     if (scrollNum < 0 || scrollNum > getMaxScrollNum()) {
                         return
                     }
@@ -79,24 +81,20 @@ class SequenceDiagramPanel : JPanel() {
             }
 
             override fun mousePressed(e: MouseEvent?) {
-                println("mousePressed")
                 lastClickX = e?.x
                 lastClickY = e?.y
                 cursor = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
             }
 
             override fun mouseReleased(e: MouseEvent?) {
-                println("mouseReleased")
                 lastClickX = null
                 lastClickY = null
             }
 
             override fun mouseEntered(e: MouseEvent?) {
-                println("mouseEntered")
             }
 
             override fun mouseExited(e: MouseEvent?) {
-                println("mouseExited")
                 lastClickX = null
                 lastClickY = null
             }
@@ -110,13 +108,10 @@ class SequenceDiagramPanel : JPanel() {
         lastLifecycle = null
         lastY = OPERATION_SPLIT_Y + SEQ_HEIGHT + 20 - (scrollNum * 20).toInt()
         for (element in elements) {
-            if (element.isActivity()) {
+            if (element inLifecycle drawLifecycleList) {
                 drawLifecycle(g, element)
                 drawArrow(g, element.className)
                 lastLifecycle = element.className
-                drawOperation(g, element)
-            } else {
-                drawArrow(g, lastLifecycle.toString())
                 drawOperation(g, element)
             }
         }
@@ -124,7 +119,8 @@ class SequenceDiagramPanel : JPanel() {
     }
 
     private fun drawVerticalScrollBar(g: Graphics) {
-        val scrollBarHeight = MAX_HEIGHT * MAX_HEIGHT / (elements.size * (OPERATION_HEIGHT + OPERATION_SPLIT_Y) + SEQ_HEIGHT + 50).toDouble()
+        val scrollBarHeight =
+            MAX_HEIGHT * MAX_HEIGHT / (elements.size * (OPERATION_HEIGHT + OPERATION_SPLIT_Y) + SEQ_HEIGHT + 50).toDouble()
         val paddingTop = (MAX_HEIGHT - scrollBarHeight) * scrollNum * 20 / (elements.size * OPERATION_HEIGHT).toDouble()
         g.drawRoundRect(MAX_WIDTH - 20, paddingTop.toInt(), 18, scrollBarHeight.toInt(), 5, 5)
         val oldColor = g.color
@@ -140,12 +136,14 @@ class SequenceDiagramPanel : JPanel() {
             val height = OPERATION_HEIGHT
             val drawOperationStartX = lastLifecycle.getMiddleX()
             val drawOperationStartY = lastY
-            if ((lastY) in -200..1000) {
+            if ((lastY) in -200..1000 && drawOperationStartX in -200..1000) {
                 drawRect(g, drawOperationStartX, lastY, width, height)
+            }
+            if ((lastY) in -200..1000) {
                 g.drawString(
-                        drawOperation.className + ": " + drawOperation.operation,
-                        drawOperationStartX + 10,
-                        drawOperationStartY + 30
+                    drawOperation.className + ": " + drawOperation.operation,
+                    drawOperationStartX + 10,
+                    drawOperationStartY + 30
                 )
             }
 
@@ -184,21 +182,21 @@ class SequenceDiagramPanel : JPanel() {
             g.drawString(drawElement.className, drawXStart + 10, drawYStart + 30)
         }
         val seqLifecycle = SeqLifecycle(
-                drawElement.className,
-                drawXStart,
-                drawYStart + height,
-                width,
-                height
+            drawElement.className,
+            drawXStart,
+            drawYStart + height,
+            width,
+            height
         )
         drawElements.add(
-                seqLifecycle
+            seqLifecycle
         )
         if ((seqLifecycle.getMiddleX()) in -200..1000) {
             g.drawLine(
-                    seqLifecycle.getMiddleX(),
-                    drawYStart + height,
-                    seqLifecycle.getMiddleX(),
-                    drawYStart + height + 2000
+                seqLifecycle.getMiddleX(),
+                drawYStart + height,
+                seqLifecycle.getMiddleX(),
+                drawYStart + height + 2000
             )
         }
     }
@@ -207,12 +205,12 @@ class SequenceDiagramPanel : JPanel() {
         if (lastLifecycle != null) {
             if (lastLifecycle == className) {
                 val lastLifecycle = drawElements.find(lastLifecycle!!)!!
-                if ((lastLifecycle.getMiddleX() + OPERATION_WIDTH - 20) in -200..1000 && (lastY - OPERATION_SPLIT_Y) in -200..1000) {
+                if ((lastY - OPERATION_SPLIT_Y) in -200..1000) {
                     g.drawLine(
-                            lastLifecycle.getMiddleX() + OPERATION_WIDTH - 20,
-                            lastY - OPERATION_SPLIT_Y,
-                            lastLifecycle.getMiddleX() + OPERATION_WIDTH - 20,
-                            lastY
+                        lastLifecycle.getMiddleX() + OPERATION_WIDTH - 20,
+                        lastY - OPERATION_SPLIT_Y,
+                        lastLifecycle.getMiddleX() + OPERATION_WIDTH - 20,
+                        lastY
                     )
                 }
 
@@ -220,29 +218,29 @@ class SequenceDiagramPanel : JPanel() {
                 val lastLifecycle = drawElements.find(lastLifecycle!!)!!
                 val nextLifecycle = drawElements.find(className)!!
                 if (lastLifecycle.drawX > nextLifecycle.drawX) {
-                    if ((lastLifecycle.getMiddleX()) in -200..1000 && (lastY + 10) in -200..1000) {
+                    if ((lastY + 10) in -200..1000) {
                         g.drawLine(
-                                lastLifecycle.getMiddleX(),
-                                lastY + 10,
-                                nextLifecycle.getMiddleX() + OPERATION_WIDTH,
-                                lastY + 10
+                            lastLifecycle.getMiddleX(),
+                            lastY + 10,
+                            nextLifecycle.getMiddleX() + OPERATION_WIDTH,
+                            lastY + 10
                         )
                     }
                 } else {
-                    if ((lastLifecycle.getMiddleX() + OPERATION_WIDTH - 20) in -200..1000 && (lastY - OPERATION_SPLIT_Y) in -200..1000) {
+                    if ((lastY - OPERATION_SPLIT_Y) in -200..1000) {
                         g.drawLine(
-                                lastLifecycle.getMiddleX() + OPERATION_WIDTH - 20,
-                                lastY - OPERATION_SPLIT_Y,
-                                lastLifecycle.getMiddleX() + OPERATION_WIDTH - 20,
-                                lastY + 10
+                            lastLifecycle.getMiddleX() + OPERATION_WIDTH - 20,
+                            lastY - OPERATION_SPLIT_Y,
+                            lastLifecycle.getMiddleX() + OPERATION_WIDTH - 20,
+                            lastY + 10
                         )
                     }
-                    if ((lastLifecycle.getMiddleX() + OPERATION_WIDTH - 20) in -200..1000 && (lastY + 10) in -200..1000) {
+                    if ((lastY + 10) in -200..1000) {
                         g.drawLine(
-                                lastLifecycle.getMiddleX() + OPERATION_WIDTH - 20,
-                                lastY + 10,
-                                nextLifecycle.getMiddleX(),
-                                lastY + 10
+                            lastLifecycle.getMiddleX() + OPERATION_WIDTH - 20,
+                            lastY + 10,
+                            nextLifecycle.getMiddleX(),
+                            lastY + 10
                         )
                     }
                 }
@@ -253,7 +251,11 @@ class SequenceDiagramPanel : JPanel() {
 
     fun setElements(elements: ArrayList<SequenceDiagramElement>) {
         this.elements = elements
-
+        val map = elements.distinct().map {
+            return@map it.className
+        }
+        this.lifecycleList = map
+        this.drawLifecycleList = map
         // 更新时序图
         repaint()
     }

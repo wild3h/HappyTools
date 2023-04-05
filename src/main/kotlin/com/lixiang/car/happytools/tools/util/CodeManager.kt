@@ -29,7 +29,7 @@ object CodeManager {
     }
 
     fun onlyOpenCode(project: Project?, fileName: String, defaultContent: String?=null): Boolean {
-        val filePath = defaultFileFolder() + File.separator + "decodeCohttp" + File.separator + fileName
+        val filePath = defaultFileFolder() + fileName
         val file = File(filePath)
         try {
             if (!file.exists()) {

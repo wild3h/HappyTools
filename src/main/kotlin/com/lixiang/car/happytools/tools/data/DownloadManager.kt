@@ -26,10 +26,7 @@ import java.util.zip.ZipInputStream
 object DownloadManager {
     @Volatile
     var downloading = false
-    fun download(project: Project, collectTimeMax: String,
-                 collectTimeMin: String,
-                 logClass: String,
-                 vin: String, pageNo: Int, keyWords: List<String>, sequenceDiagramPanel: SequenceDiagramPanel) {
+    fun download(project: Project, config:LogConfigBeans, pageNo: Int, sequenceDiagramPanel: SequenceDiagramPanel,onSuccess:()->Unit) {
         if (downloading) {
             NotifyUtil.notifyMessage("别催了~已经开始下载了QAQ")
             return
@@ -41,7 +38,10 @@ object DownloadManager {
             withContext(Dispatchers.IO) {
                 val client: HttpClient = DefaultHttpClient()
                 // 创建HttpGet对象
-                val request = HttpGet("https://dip-data-msg-parsing-service.prod.k8s.chehejia.com/v1-0/msg-parsing/hu-log-files/pagination?collectTimeMax=${collectTimeMax}&collectTimeMin=${collectTimeMin}&logClass=${logClass}&vin=${vin}&remoteMode=false&pageNo=${pageNo}&pageSize=100&logLevel=")
+                val url =
+                    "https://dip-data-msg-parsing-service.prod.k8s.chehejia.com/v1-0/msg-parsing/hu-log-files/pagination?collectTimeMax=${config.time_end_date}+${config.time_end_time}&collectTimeMin=${config.time_start_date}+${config.time_start_time}&logClass=${config.log_type}&vin=${config.vin}&remoteMode=false&pageNo=${pageNo}&pageSize=100&logLevel="
+                val request = HttpGet(url)
+                println(url)
 
                 // 发起请求并获取响应对象
                 val response: HttpResponse = client.execute(request)
@@ -93,7 +93,7 @@ object DownloadManager {
                             while (br.readLine()?.also {
                                         line = it
                                     } != null) {
-                                keyWords.forEach { keyWord ->
+                                config.key_word.forEach { keyWord ->
                                     if (line.toString().contains(keyWord)) {
                                         val pattern = Regex("\\d{4}-\\d{2}-\\d{2}\\ \\d{2}:\\d{2}:\\d{2}.\\d{3}")
                                         val matches = pattern.findAll(line.toString()).map { it.value }.toList()
@@ -123,6 +123,7 @@ object DownloadManager {
             }
             sequenceDiagramPanel.setElements(listData)
             downloading = false
+            onSuccess()
             NotifyUtil.notifyMessage("分析完成！")
         }
     }
