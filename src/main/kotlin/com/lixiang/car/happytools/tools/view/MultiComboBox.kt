@@ -71,8 +71,10 @@ class MultiComboBox(val onConfirm:(Array<String>)->Unit) : JComponent(), ActionL
 
     protected fun createArrowButton(): JButton {
         val button: JButton = BasicArrowButton(
-            BasicArrowButton.SOUTH, UIManager.getColor("ComboBox.buttonBackground"),
-            UIManager.getColor("ComboBox.buttonShadow"), UIManager.getColor("ComboBox.buttonDarkShadow"),
+            BasicArrowButton.SOUTH,
+            UIManager.getColor("ComboBox.buttonBackground"),
+            UIManager.getColor("ComboBox.buttonShadow"),
+            UIManager.getColor("ComboBox.buttonDarkShadow"),
             UIManager.getColor("ComboBox.buttonHighlight")
         )
         button.name = "ComboBox.arrowButton"

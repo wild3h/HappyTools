@@ -2,14 +2,16 @@ package com.lixiang.car.happytools.tools.entity
 
 data class SequenceDiagramElement(
     val time: Long = 0,
+    val timeStr :String,
+    val pid: String,
     var className: String,
     var operation: String
-){
+) {
     fun isActivity(): Boolean {
-        return className.contains("Activity",ignoreCase = true)
+        return className.contains("Activity", ignoreCase = true)
     }
 
-    infix fun inLifecycle(list:List<String>): Boolean {
+    infix fun inLifecycle(list: List<String>): Boolean {
         return list.contains(this.className)
     }
 

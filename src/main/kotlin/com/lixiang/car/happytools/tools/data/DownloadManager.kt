@@ -26,7 +26,7 @@ import java.util.zip.ZipInputStream
 object DownloadManager {
     @Volatile
     var downloading = false
-    fun download(project: Project, config:LogConfigBeans, pageNo: Int, sequenceDiagramPanel: SequenceDiagramPanel,onSuccess:()->Unit) {
+    fun download(project: Project, config: LogConfigBeans, pageNo: Int, sequenceDiagramPanel: SequenceDiagramPanel, onSuccess: () -> Unit) {
         if (downloading) {
             NotifyUtil.notifyMessage("别催了~已经开始下载了QAQ")
             return
@@ -60,10 +60,9 @@ object DownloadManager {
                     try {
                         val url = URL(it.downloadURL)
                         val zipFile = File(com.lixiang.car.happytools.tools.util.FileUtils.defaultFileFolder() + it.fileName)
-                        if (zipFile.exists()) {
-                            zipFile.delete()
+                        if (!zipFile.exists()) {
+                            FileUtils.copyURLToFile(url, zipFile)
                         }
-                        FileUtils.copyURLToFile(url, zipFile)
                         val fis = FileInputStream(zipFile)
                         val zis = ZipInputStream(fis)
                         var ze: ZipEntry? = zis.nextEntry
@@ -91,8 +90,8 @@ object DownloadManager {
                             val br = BufferedReader(FileReader(logFile))
                             var line: String? = null
                             while (br.readLine()?.also {
-                                        line = it
-                                    } != null) {
+                                    line = it
+                                } != null) {
                                 config.key_word.forEach { keyWord ->
                                     if (line.toString().contains(keyWord)) {
                                         val pattern = Regex("\\d{4}-\\d{2}-\\d{2}\\ \\d{2}:\\d{2}:\\d{2}.\\d{3}")
@@ -102,16 +101,14 @@ object DownloadManager {
                                             val dateFormat = SimpleDateFormat(timePattern)
                                             val date = dateFormat.parse(time)
                                             val timestamp = date?.time ?: 0
-                                            val charAt = line.toString().indexOf(':',38)
-                                            listData.add(SequenceDiagramElement(timestamp, line.toString().substring(38,charAt), line.toString().substring(charAt+1)))
-
+                                            val charAt = line.toString().indexOf(':', 38)
+                                            listData.add(SequenceDiagramElement(timestamp,time, line.toString().substring(24, 30), line.toString().substring(38, charAt), line.toString().substring(charAt + 1)))
                                         }
                                     }
                                 }
                             }
                             br.close()
                         }
-                        zipFile.delete()
                     } catch (ex: Exception) {
                         ex.printStackTrace()
                         downloading = false
