@@ -1,5 +1,7 @@
 package com.lixiang.car.happytools.tools.entity
 
+import com.lixiang.car.happytools.tools.constants.DiagramConstants.MAX_CHAR_ONE_LINE
+
 data class SequenceDiagramElement(
     val time: Long = 0,
     val timeStr :String,
@@ -7,12 +9,27 @@ data class SequenceDiagramElement(
     var className: String,
     var operation: String
 ) {
+    private lateinit var formatOpt:String
     fun isActivity(): Boolean {
         return className.contains("Activity", ignoreCase = true)
     }
 
     infix fun inLifecycle(list: List<String>): Boolean {
         return list.contains(this.className)
+    }
+
+    fun getFormatOpt():String{
+        if (!::formatOpt.isInitialized){
+            val builder = StringBuilder()
+            className.forEachIndexed { index, c ->
+                builder.append(c)
+                if (index % MAX_CHAR_ONE_LINE == MAX_CHAR_ONE_LINE - 1) {
+                    builder.append("\n")
+                }
+            }
+            formatOpt = builder.toString()
+        }
+        return formatOpt
     }
 
     override fun equals(other: Any?): Boolean {
@@ -23,7 +40,6 @@ data class SequenceDiagramElement(
     }
 
     override fun hashCode(): Int {
-        var result = className.hashCode()
-        return result
+        return className.hashCode()
     }
 }

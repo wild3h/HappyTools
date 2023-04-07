@@ -27,15 +27,15 @@ import kotlin.concurrent.thread
 
 class DiagramToolWindow : ToolWindowFactory {
 
-    val rootView by lazy {
+    private val rootView by lazy {
         JPanel()
     }
-    val sequenceDiagramPanel by lazy {
+    private val sequenceDiagramPanel by lazy {
         SequenceDiagramPanel()
     }
-    val lifecycleSelector  by lazy{
-        MultiComboBox(){
-            sequenceDiagramPanel.drawLifecycleList = it.toList()
+    private val lifecycleSelector by lazy {
+        MultiComboBox() {
+            sequenceDiagramPanel.diagramDelegate.setDrawLifecycles(it.toList())
             sequenceDiagramPanel.repaint()
         }
     }
@@ -64,10 +64,10 @@ class DiagramToolWindow : ToolWindowFactory {
 
                         // 将json字符串转换为Java对象
                         val config: LogConfigBeans = gson.fromJson(jsonStr.toString(), LogConfigBeans::class.java)
-                        DownloadManager.download(project, config, 1,sequenceDiagramPanel){
+                        DownloadManager.download(project, config, 1, sequenceDiagramPanel) {
                             lifecycleSelector.setValues(arrayListOf<String>().apply {
                                 add("全选")
-                                addAll(sequenceDiagramPanel.lifecycleList)
+                                addAll(sequenceDiagramPanel.diagramDelegate.getDrawLifecycles().map { it.element.className })
                             }.toTypedArray())
                         }
                     }
@@ -88,7 +88,7 @@ class DiagramToolWindow : ToolWindowFactory {
         rootView.add(editConfig)
         rootView.add(run)
         rootView.add(lifecycleSelector)
-        lifecycleSelector.preferredSize = Dimension(200,30)
+        lifecycleSelector.preferredSize = Dimension(200, 30)
         val seqCons = springLayout.getConstraints(sequenceDiagramPanel)
         val editCons = springLayout.getConstraints(editConfig)
         val runCons = springLayout.getConstraints(run)
@@ -96,11 +96,11 @@ class DiagramToolWindow : ToolWindowFactory {
         seqCons.x = Spring.constant(20)
         seqCons.y = Spring.constant(50)
 
-        editConfig.bottomToTop(sequenceDiagramPanel,10)
+        editConfig.bottomToTop(sequenceDiagramPanel, 10)
         editConfig.leftToLeft(sequenceDiagramPanel)
         run.bottomToBottom(editConfig)
-        run.leftToRight(editConfig,5)
-        lifecycleSelector.leftToRight(run,5)
+        run.leftToRight(editConfig, 5)
+        lifecycleSelector.leftToRight(run, 5)
         lifecycleSelector.topToTop(editConfig)
     }
 

@@ -1,11 +1,11 @@
 package com.lixiang.car.happytools.tools.entity
 
 data class SeqLifecycle(
-    val className: String,
-    val drawX: Int,
-    val drawYEnd: Int,
-    val width: Int,
-    val height: Int
+    val element: SequenceDiagramElement,
+    var drawX: Int=0,
+    var drawY: Int=0,
+    var width: Int=0,
+    var height: Int=0
 ) {
     fun getMiddleX(): Int {
         return drawX + width / 2
