@@ -73,18 +73,15 @@ class SequenceDiagramPanel : JPanel() {
         })
     }
 
-    override fun repaint() {
-        super.repaint()
-        diagramDelegate.repaint()
-    }
 
     public override fun paintComponent(g: Graphics) {
         var lastTime = System.currentTimeMillis()
         super.paintComponent(g)
+        diagramDelegate?.repaint()
         diagramDelegate.onMeasure(g)
         diagramDelegate.onDraw(g)
 
-        println("paintComponent ${System.currentTimeMillis() - lastTime}")
+        //println("paintComponent ${System.currentTimeMillis() - lastTime}")
 //        drawAtLast(g)
     }
 
