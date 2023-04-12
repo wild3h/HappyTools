@@ -1,7 +1,7 @@
 package com.lixiang.car.happytools.tools.data;
 data class LogData(
     var code: Int,
-    var `data`: Data,
+    var `data`: Data?,
     var message: String,
     var success: Boolean,
     var timestamp: Long

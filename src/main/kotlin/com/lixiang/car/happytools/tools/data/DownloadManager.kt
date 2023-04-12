@@ -55,9 +55,9 @@ object DownloadManager {
                 println("Status code: $statusCode")
                 println("Response content: $content")
                 val logData = Gson().fromJson<LogData>(content, object : TypeToken<LogData>() {}.type)
-                val logFiles = arrayListOf<String>()
-                logData.data.list.forEach {
+                logData.data?.list?.forEach {
                     try {
+                        val logFiles = arrayListOf<String>()
                         val url = URL(it.downloadURL)
                         val zipFile = File(com.lixiang.car.happytools.tools.util.FileUtils.defaultFileFolder() + it.fileName)
                         if (!zipFile.exists()) {
@@ -113,6 +113,8 @@ object DownloadManager {
                         ex.printStackTrace()
                         downloading = false
                     }
+                }?:kotlin.run {
+                    NotifyUtil.notifyMessage("数据为空")
                 }
                 listData.sortBy {
                     it.time
