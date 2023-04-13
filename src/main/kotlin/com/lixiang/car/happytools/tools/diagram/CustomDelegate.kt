@@ -88,8 +88,6 @@ class CustomDelegate(private val mParent: SequenceDiagramPanel) : DiagramDelegat
         val operationHeight = stringHeight + OPERATION_PADDING_VERTICAL * 2 + OPERATION_SPLIT_Y
         outSize = ((topLine / operationHeight) - 1).coerceAtLeast(0)
         bottomSize = ((bottomLine / operationHeight) + 1).coerceAtMost(selectedElements.size)
-        println("bottomLine / operationHeight${bottomLine / operationHeight}")
-        println(drawYStart)
 
 //        val leftLine = (-drawXStart + SequenceDiagramPanel.DRAW_START_X).coerceAtLeast(0)
 //        val rightLine = mParent.width - drawXStart

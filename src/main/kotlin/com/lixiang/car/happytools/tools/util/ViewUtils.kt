@@ -7,9 +7,11 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.fileTypes.FileType
+import org.jdesktop.swingx.JXDatePicker
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
+import java.text.SimpleDateFormat
 import java.util.*
 import javax.swing.JComponent
 import javax.swing.JRadioButton
@@ -40,11 +42,11 @@ operator fun JComponent.plusAssign(component: JComponent) {
     this.add(component)
 }
 
-infix fun JComponent.add(component: JComponent) {
+infix fun JComponent.add(component: Component) {
     this.add(component)
 }
 
-fun JComponent.add(vararg components: JComponent) {
+fun JComponent.add(vararg components: Component) {
     components.forEach {
         this.add(it)
     }
@@ -188,5 +190,10 @@ fun Component.bottomToTop(panel: Component, margin: Int = 0) {
         val otherPanel = parent.getConstraints(panel)
         thisPanel.setConstraint(SpringLayout.SOUTH, Spring.sum(otherPanel.getConstraint(SpringLayout.NORTH), Spring.constant(-margin)))
     }
+}
+
+fun JXDatePicker.getFormatDate(format: String): String {
+    val dateFormat = SimpleDateFormat(format)
+    return dateFormat.format(date)
 }
 

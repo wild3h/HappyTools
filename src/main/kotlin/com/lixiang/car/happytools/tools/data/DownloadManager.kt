@@ -39,7 +39,7 @@ object DownloadManager {
                 val client: HttpClient = DefaultHttpClient()
                 // 创建HttpGet对象
                 val url =
-                    "https://dip-data-msg-parsing-service.prod.k8s.chehejia.com/v1-0/msg-parsing/hu-log-files/pagination?collectTimeMax=${config.time_end_date}+${config.time_end_time}&collectTimeMin=${config.time_start_date}+${config.time_start_time}&logClass=${config.log_type}&vin=${config.vin}&remoteMode=false&pageNo=${pageNo}&pageSize=100&logLevel="
+                    "https://dip-data-msg-parsing-service.prod.k8s.chehejia.com/v1-0/msg-parsing/hu-log-files/pagination?collectTimeMax=${config.time_end_date}&collectTimeMin=${config.time_start_date}&logClass=${config.log_type}&vin=${config.vin}&remoteMode=false&pageNo=${pageNo}&pageSize=100&logLevel="
                 val request = HttpGet(url)
                 println(url)
 
