@@ -179,11 +179,36 @@ class CustomDelegate(private val mParent: SequenceDiagramPanel) : DiagramDelegat
     }
 
     private fun drawRect(g: Graphics, startX: Int, startY: Int, width: Int, height: Int) {
-        g.drawRect(startX, startY, width, height)
-        val oldColor = g.color
-        g.color = JBColor(Color.yellow, Gray._80);
-        g.fillRect(startX + 1, startY + 1, width - 1, height - 1)
-        g.color = oldColor
+        if (startX < 0) {
+            if (-startX >= width) {
+                return
+            }
+            val newWidth = width + startX
+            g.drawRect(0, startY, newWidth, height)
+            val oldColor = g.color
+            g.color = JBColor(Color.yellow, Gray._80);
+            g.fillRect(1, startY + 1, newWidth - 1, height - 1)
+            g.color = oldColor
+        } else if (startX > mParent.width) {
+            return
+        } else {
+            if ((startX + width) > mParent.width) {
+                val newWidth = mParent.width - startX
+                g.drawRect(startX, startY, newWidth, height)
+                val oldColor = g.color
+                g.color = JBColor(Color.yellow, Gray._80);
+                g.fillRect(startX + 1, startY + 1, newWidth - 1, height - 1)
+                g.color = oldColor
+            } else {
+                g.drawRect(startX, startY, width, height)
+                val oldColor = g.color
+                g.color = JBColor(Color.yellow, Gray._80);
+                g.fillRect(startX + 1, startY + 1, width - 1, height - 1)
+                g.color = oldColor
+            }
+
+        }
+
     }
 
     override fun mouseWheelMoved(it: MouseWheelEvent) {

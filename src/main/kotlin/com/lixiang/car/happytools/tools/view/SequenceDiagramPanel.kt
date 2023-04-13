@@ -81,7 +81,7 @@ class SequenceDiagramPanel : JPanel() {
         diagramDelegate.onMeasure(g)
         diagramDelegate.onDraw(g)
 
-        //println("paintComponent ${System.currentTimeMillis() - lastTime}")
+        println("paintComponent ${System.currentTimeMillis() - lastTime}")
 //        drawAtLast(g)
     }
 
