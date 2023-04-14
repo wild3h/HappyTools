@@ -1,6 +1,7 @@
 package com.lixiang.car.happytools.tools.toolswindowfactory
 
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.JBPopupMenu
 import com.intellij.openapi.wm.ToolWindow
@@ -10,43 +11,18 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.content.ContentFactory
-import com.lixiang.car.happytools.tools.data.DownloadManager
-import com.lixiang.car.happytools.tools.data.LogConfigBeans
-import com.lixiang.car.happytools.tools.entity.SequenceDiagramElement
+import com.lixiang.car.happytools.tools.data.*
 import com.lixiang.car.happytools.tools.util.*
-import com.lixiang.car.happytools.tools.util.FileUtils
 import com.lixiang.car.happytools.tools.view.MultiComboBox
 import com.lixiang.car.happytools.tools.view.SequenceDiagramPanel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.apache.http.HttpEntity
-import org.apache.http.HttpResponse
-import org.apache.http.StatusLine
-import org.apache.http.client.HttpClient
-import org.apache.http.client.methods.HttpGet
-import org.apache.http.impl.client.DefaultHttpClient
-import org.apache.http.util.EntityUtils
+import kotlinx.coroutines.*
 import org.jdesktop.swingx.JXComboBox
 import org.jdesktop.swingx.JXDatePicker
 import wu.seal.jsontokotlin.ui.jHorizontalLinearLayout
-import java.awt.BorderLayout
-import java.awt.Button
 import java.awt.Dimension
-import java.awt.FlowLayout
-import java.io.BufferedReader
-import java.io.File
-import java.io.FileReader
-import java.io.IOException
-import javax.swing.JButton
-import javax.swing.JPanel
-import javax.swing.Spring
-import javax.swing.SpringLayout
+import javax.swing.*
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
-import javax.swing.plaf.basic.BasicArrowButton
-import kotlin.concurrent.thread
 
 
 class DiagramToolWindow : ToolWindowFactory {
@@ -66,36 +42,38 @@ class DiagramToolWindow : ToolWindowFactory {
         }
     }
     private val vinConfigPanel by lazy {
-        JBTextField().apply {
-            preferredSize = Dimension(150, 30)
-            var lastUpdateTime:Long? = null
-            document.addDocumentListener(object :DocumentListener{
-                override fun insertUpdate(e: DocumentEvent?) {
-                }
+        val jbTextField = JBTextField()
+        jbTextField.preferredSize = Dimension(150, 30)
+        jbTextField.document.addDocumentListener(object : DocumentListener {
+            override fun insertUpdate(e: DocumentEvent?) {
+                updateVinConfig(jbTextField.text)
+            }
 
-                override fun removeUpdate(e: DocumentEvent?) {
-                }
+            override fun removeUpdate(e: DocumentEvent?) {
+                updateVinConfig(jbTextField.text)
+            }
 
-                override fun changedUpdate(e: DocumentEvent?) {
-                    GlobalScope.launch {
-                        withContext(Dispatchers.IO){
-                            val vin = text
-                            val url = "https://dip-data-msg-parsing-service.prod.k8s.chehejia.com/v1-0/msg-parsing/common/vehicles/pagination?pageNum=1&pageSize=100&vinContains=LW433B120N1024099"
-                            val request = HttpGet(url)
-                            println(url)
-                            val client: HttpClient = DefaultHttpClient()
-                            // 发起请求并获取响应对象
-                            val response: HttpResponse = client.execute(request)
-                            // 获取响应状态码
-                            val statusLine: StatusLine = response.statusLine
-                            val statusCode: Int = statusLine.statusCode
-                            // 获取响应内容
-                            val entity: HttpEntity = response.entity
-                            val content: String = EntityUtils.toString(entity)
-                        }
-                    }
-                }
-            })
+            override fun changedUpdate(e: DocumentEvent?) {
+            }
+        })
+        jbTextField
+    }
+
+    private val vinConfigMap = HashMap<String, String>()
+    var oldJob: Job? = null
+    private fun updateVinConfig(vin: String) {
+        if (vinConfigMap.contains(vin)) {
+            val array = carConfigsMap[vinConfigMap[vin]]
+            logTypeComboBox.model = DefaultComboBoxModel(array)
+            return
+        }
+        if (oldJob?.isActive == true) {
+            oldJob?.cancel()
+        }
+        oldJob = DownloadManager.requestUrl<VinConfig>("https://dip-data-msg-parsing-service.prod.k8s.chehejia.com/v1-0/msg-parsing/common/vehicles/pagination?pageNum=1&pageSize=100&vinContains=$vin", object : TypeToken<BaseResp<VinConfig>>() {}.type) {
+            vinConfigMap[vin] = it?.vehSeriesNo ?: "NONE"
+            val array = carConfigsMap[vinConfigMap[vin]]
+            logTypeComboBox.model = DefaultComboBoxModel(array)
         }
     }
 
@@ -131,14 +109,98 @@ class DiagramToolWindow : ToolWindowFactory {
         }
     }
 
+    private val carConfigsMap = HashMap<String, Array<String>>()
+    init {
+        carConfigsMap["M01"] = arrayOf(
+            "PROCESSER_820_AND",
+            "PROCESSER_820_KERNEL",
+            "PROCESSER_820_MCU",
+            "PROCESSER_J6",
+            "PROCESSER_ANR",
+            "PROCESSER_TOMBSTONE",
+            "PROCESSER_SYS",
+            "DROPBOX",
+            "BLUETOOTH",
+            "MODEM_HEART_BEAT",
+            "EGWPCAP",
+            "TOUCH",
+            "NPU",
+            "noa",
+            "VHAL",
+            "cpu_monitor"
+        )
+        carConfigsMap["X01"] = arrayOf(
+            "log_HUR_8155_android",
+            "log_HUF_8155_android",
+            "scs_j5_log",
+            "scs_g3_log",
+            "log_HUR_oom",
+            "log_HUR_rawdump",
+            "log_HUR_adsp_subsys",
+            "log_HUR_adsp",
+            "log_5G_kernel",
+            "log_5G_APNRT",
+            "log_HUF_adsp_subsys",
+            "log_HUF_adsp",
+            "log_xcu_bms",
+            "log_xcu_fbcm",
+            "log_5G_APRT",
+            "log_xcu_rbcm",
+            "log_HUF_rawdump",
+            "log_HUF_oom",
+            "nvh_eol",
+            "nvh_server",
+            "res_mileage",
+            "lisysm_uploader",
+            "log_HUF_pcap",
+            "log_HUR_5G_kernel",
+            "log_HUR_pcap",
+            "log_HUR_Klog",
+            "log_HUF_Klog",
+            "log_xcu_pstore",
+            "log_xcu_pcap",
+            "log_xcu_bluetooth",
+            "log_xcu_kernel",
+            "log_xcu_application",
+            "log_xcu_service",
+            "log_HUF_crash_event",
+            "log_HUR_5G_APRT",
+            "log_HUF_bluetooth",
+            "log_HUF_crash_panic",
+            "log_HUF_mcu",
+            "log_HUF_kernel",
+            "log_HUR_crash_event",
+            "log_HUR_kernel",
+            "log_HUF_touchbar",
+            "log_HUF_crash_anr",
+            "log_xcu_debug",
+            "log_xcu_coredump",
+            "log_xcu_mcu",
+            "log_HUR_crash_panic",
+            "log_HUR_crash_anr",
+            "log_HUR_dropbox",
+            "log_HUF_roofbar",
+            "log_HUF_amp",
+            "log_HUR_bluetooth",
+            "log_gbt32960",
+            "log_HUF_dropbox",
+            "log_HUR_crash_tmston",
+            "log_HUR_crash_sys",
+            "log_HUR_5G_APNRT",
+            "log_fsdB",
+            "log_fsdA",
+            "log_HUF_hud",
+            "log_HUF_crash_tmston",
+            "log_xcu",
+            "log_HUF_crash_sys"
+        )
+        carConfigsMap["NONE"] = arrayOf()
+    }
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val contentFactory = ContentFactory.SERVICE.getInstance()
         initRootView(project)
         val content = contentFactory.createContent(rootView, "", false)
         toolWindow.contentManager.addContent(content)
-        GlobalScope.launch {
-            val logTypeUrl = "https://dip-data-msg-parsing-service.prod.k8s.chehejia.com/v1-0/msg-parsing/hu-log-files/log-classes?tag=log"
-        }
     }
 
     private fun initRootView(project: Project) {
@@ -174,7 +236,7 @@ class DiagramToolWindow : ToolWindowFactory {
         val logTypeTitle = JBLabel("业务类型：").apply {
             preferredSize = Dimension(80, 30)
         }
-        rootView.add(sequenceDiagramPanel, run, lifecycleSelector, vinTitle, vinConfigPanel, timeLine, logTypeTitle,logTypeComboBox, wordsLine)
+        rootView.add(sequenceDiagramPanel, run, lifecycleSelector, vinTitle, vinConfigPanel, timeLine, logTypeTitle, logTypeComboBox, wordsLine)
 
         val vinCons = springLayout.getConstraints(vinTitle)
         vinCons.x = Spring.constant(20)

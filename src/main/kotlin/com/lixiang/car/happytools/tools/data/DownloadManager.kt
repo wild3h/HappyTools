@@ -16,6 +16,7 @@ import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.DefaultHttpClient
 import org.apache.http.util.EntityUtils
 import java.io.*
+import java.lang.reflect.Type
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
@@ -54,7 +55,7 @@ object DownloadManager {
                 // 处理响应数据
                 println("Status code: $statusCode")
                 println("Response content: $content")
-                val logData = Gson().fromJson<LogData>(content, object : TypeToken<LogData>() {}.type)
+                val logData = Gson().fromJson<BaseResp<LogItem>>(content, object : TypeToken<BaseResp<LogItem>>() {}.type)
                 logData.data?.list?.forEach {
                     try {
                         val logFiles = arrayListOf<String>()
@@ -102,7 +103,7 @@ object DownloadManager {
                                             val date = dateFormat.parse(time)
                                             val timestamp = date?.time ?: 0
                                             val charAt = line.toString().indexOf(':', 38)
-                                            listData.add(SequenceDiagramElement(timestamp,time, line.toString().substring(24, 30), line.toString().substring(38, charAt), line.toString().substring(charAt + 1)))
+                                            listData.add(SequenceDiagramElement(timestamp, time, line.toString().substring(24, 30), line.toString().substring(38, charAt), line.toString().substring(charAt + 1)))
                                         }
                                     }
                                 }
@@ -113,7 +114,7 @@ object DownloadManager {
                         ex.printStackTrace()
                         downloading = false
                     }
-                }?:kotlin.run {
+                } ?: kotlin.run {
                     NotifyUtil.notifyMessage("数据为空")
                 }
                 listData.sortBy {
@@ -124,6 +125,36 @@ object DownloadManager {
             downloading = false
             onSuccess()
             NotifyUtil.notifyMessage("分析完成！")
+        }
+    }
+
+    fun <T> requestUrl(url: String, type: Type, onSuccess: (T?) -> Unit): Job {
+        return GlobalScope.launch {
+            withContext(Dispatchers.IO) {
+                try {
+                    val client: HttpClient = DefaultHttpClient()
+                    // 创建HttpGet对象
+                    val request = HttpGet(url)
+                    println(url)
+
+                    // 发起请求并获取响应对象
+                    val response: HttpResponse = client.execute(request)
+                    // 获取响应状态码
+                    val statusLine: StatusLine = response.statusLine
+                    val statusCode: Int = statusLine.statusCode
+                    // 获取响应内容
+                    val entity: HttpEntity = response.entity
+                    val content: String = EntityUtils.toString(entity)
+                    // 处理响应数据
+                    println("Status code: $statusCode")
+                    println("Response content: $content")
+                    val fromJson = Gson().fromJson<BaseResp<T>>(content, type)
+                    val vinConfig = fromJson.data
+                    onSuccess(vinConfig?.list?.firstOrNull())
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
         }
     }
 }

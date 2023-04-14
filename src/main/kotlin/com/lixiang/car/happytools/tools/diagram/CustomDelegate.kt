@@ -127,7 +127,7 @@ class CustomDelegate(private val mParent: SequenceDiagramPanel) : DiagramDelegat
         val drawStartY = SequenceDiagramPanel.DRAW_START_Y
         val stringWidth = StringMetrics.getStringWidth(lifecycle.element.className, g.font, g)
         lifecycleWidthTotal += stringWidth
-        val lifecycleWidth = stringWidth + OPERATION_PADDING_HORIZONTAL * 2
+        val lifecycleWidth = (stringWidth + OPERATION_PADDING_HORIZONTAL * 2).coerceAtLeast(SEQ_WIDTH)
         val lifecycleHeight = stringHeight + OPERATION_PADDING_VERTICAL * 2
         drawRect(g, drawStartX, drawStartY, lifecycleWidth, lifecycleHeight)
         lifecycle.drawX = drawStartX
@@ -146,9 +146,18 @@ class CustomDelegate(private val mParent: SequenceDiagramPanel) : DiagramDelegat
         val operationHeight = stringHeight + OPERATION_PADDING_VERTICAL * 2 + OPERATION_SPLIT_Y
         val drawStartY = SEQ_HEIGHT + OPERATION_SPLIT_Y + movedYTotal + operationHeight * index + SequenceDiagramPanel.DRAW_START_Y
         val drawStartX = currentLifecycle.getMiddleX()
-        drawRect(g, drawStartX, drawStartY, StringMetrics.getStringWidth(text, g.font, g) + OPERATION_PADDING_HORIZONTAL * 2, stringHeight + OPERATION_PADDING_VERTICAL * 2)
+        val width = (StringMetrics.getStringWidth(text, g.font, g) + OPERATION_PADDING_HORIZONTAL * 2).coerceAtLeast(OPERATION_WIDTH)
+        drawRect(g, drawStartX, drawStartY, width, stringHeight + OPERATION_PADDING_VERTICAL * 2)
         g.drawString(text, drawStartX + OPERATION_PADDING_HORIZONTAL, drawStartY + OPERATION_PADDING_VERTICAL + stringHeight)
         lastDrawY = drawStartY
+
+        val timeStr = drawOperation.timeStr + " " + drawOperation.pid
+        drawRect(g, 0, drawStartY, StringMetrics.getStringWidth(timeStr, g.font, g), stringHeight + OPERATION_PADDING_VERTICAL * 2 + OPERATION_SPLIT_Y)
+        g.drawString(
+            timeStr,
+            0,
+            drawStartY + OPERATION_PADDING_VERTICAL + stringHeight
+        )
     }
 
     private fun drawArrow(g: Graphics, className: String, lastLifecycle: SeqLifecycle?) {
