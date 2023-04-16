@@ -27,7 +27,14 @@ import java.util.zip.ZipInputStream
 object DownloadManager {
     @Volatile
     var downloading = false
-    fun download(project: Project, config: LogConfigBeans, pageNo: Int, sequenceDiagramPanel: SequenceDiagramPanel, onSuccess: () -> Unit) {
+    fun download(
+        project: Project,
+        config: LogConfigBeans,
+        pageNo: Int,
+        sequenceDiagramPanel: SequenceDiagramPanel,
+        onSuccess: () -> Unit,
+        onProgress: ((Int) -> Unit)? = null
+    ) {
         if (downloading) {
             NotifyUtil.notifyMessage("别催了~已经开始下载了QAQ")
             return
@@ -55,12 +62,14 @@ object DownloadManager {
                 // 处理响应数据
                 println("Status code: $statusCode")
                 println("Response content: $content")
-                val logData = Gson().fromJson<BaseResp<LogItem>>(content, object : TypeToken<BaseResp<LogItem>>() {}.type)
-                logData.data?.list?.forEach {
+                val logData =
+                    Gson().fromJson<BaseResp<LogItem>>(content, object : TypeToken<BaseResp<LogItem>>() {}.type)
+                val totalLength = logData.data?.list?.size
+                logData.data?.list?.forEachIndexed { index, logItem ->
                     try {
                         val logFiles = arrayListOf<String>()
-                        val url = URL(it.downloadURL)
-                        val zipFile = File(com.lixiang.car.happytools.tools.util.FileUtils.defaultFileFolder() + it.fileName)
+                        val url = URL(logItem.downloadURL)
+                        val zipFile = File(com.lixiang.car.happytools.tools.util.FileUtils.defaultFileFolder() + logItem.fileName)
                         if (!zipFile.exists()) {
                             FileUtils.copyURLToFile(url, zipFile)
                         }
@@ -94,6 +103,9 @@ object DownloadManager {
                                     line = it
                                 } != null) {
                                 config.key_word.forEach { keyWord ->
+                                    if (keyWord.isBlank()){
+                                        return@forEach
+                                    }
                                     if (line.toString().contains(keyWord)) {
                                         val pattern = Regex("\\d{4}-\\d{2}-\\d{2}\\ \\d{2}:\\d{2}:\\d{2}.\\d{3}")
                                         val matches = pattern.findAll(line.toString()).map { it.value }.toList()
@@ -103,13 +115,24 @@ object DownloadManager {
                                             val date = dateFormat.parse(time)
                                             val timestamp = date?.time ?: 0
                                             val charAt = line.toString().indexOf(':', 38)
-                                            listData.add(SequenceDiagramElement(timestamp, time, line.toString().substring(24, 30), line.toString().substring(38, charAt), line.toString().substring(charAt + 1)))
+                                            listData.add(
+                                                SequenceDiagramElement(
+                                                    timestamp,
+                                                    time,
+                                                    line.toString().substring(24, 30),
+                                                    line.toString().substring(38, charAt.coerceAtLeast(38)),
+                                                    line.toString().substring(charAt.coerceAtLeast(38) + 1)
+                                                )
+                                            )
                                         }
                                     }
                                 }
                             }
                             br.close()
                         }
+                        onProgress?.invoke(((index + 1) * 100) / totalLength!!)
+                        println(listData.size)
+                        println(logFiles.size)
                     } catch (ex: Exception) {
                         ex.printStackTrace()
                         downloading = false

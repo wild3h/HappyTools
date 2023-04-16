@@ -26,8 +26,8 @@ import kotlin.math.abs
 
 class SequenceDiagramPanel : JPanel() {
     companion object {
-        const val MAX_WIDTH = 800
-        const val MAX_HEIGHT = 700
+        var MAX_WIDTH = 800
+        var MAX_HEIGHT = 700
         const val DRAW_START_X = 150
         const val DRAW_START_Y = 20
     }
@@ -81,7 +81,7 @@ class SequenceDiagramPanel : JPanel() {
         diagramDelegate.onMeasure(g)
         diagramDelegate.onDraw(g)
 
-        println("paintComponent ${System.currentTimeMillis() - lastTime}")
+        //println("paintComponent ${System.currentTimeMillis() - lastTime}")
 //        drawAtLast(g)
     }
 

@@ -9,9 +9,9 @@ import java.awt.event.MouseWheelEvent
 interface DiagramDelegate {
 
     fun repaint()
-    fun onMeasure(g:Graphics)
+    fun onMeasure(g: Graphics)
 
-    fun onDraw(g:Graphics)
+    fun onDraw(g: Graphics)
 
     fun mouseWheelMoved(e: MouseWheelEvent)
 
@@ -25,9 +25,9 @@ interface DiagramDelegate {
 
     fun mouseExited(e: MouseEvent?)
 
-    fun setElement(data:List<SequenceDiagramElement>)
+    fun setElement(data: List<SequenceDiagramElement>)
 
-    fun getDrawLifecycles():List<SeqLifecycle>
+    fun getDrawLifecycles(): List<SeqLifecycle>
 
-    fun setDrawLifecycles(data:List<String>)
+    fun setDrawLifecycles(data: List<String>)
 }

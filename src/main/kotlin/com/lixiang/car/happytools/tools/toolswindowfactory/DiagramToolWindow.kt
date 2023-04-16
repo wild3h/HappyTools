@@ -20,6 +20,8 @@ import org.jdesktop.swingx.JXComboBox
 import org.jdesktop.swingx.JXDatePicker
 import wu.seal.jsontokotlin.ui.jHorizontalLinearLayout
 import java.awt.Dimension
+import java.awt.event.ComponentEvent
+import java.awt.event.ComponentListener
 import javax.swing.*
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
@@ -70,7 +72,10 @@ class DiagramToolWindow : ToolWindowFactory {
         if (oldJob?.isActive == true) {
             oldJob?.cancel()
         }
-        oldJob = DownloadManager.requestUrl<VinConfig>("https://dip-data-msg-parsing-service.prod.k8s.chehejia.com/v1-0/msg-parsing/common/vehicles/pagination?pageNum=1&pageSize=100&vinContains=$vin", object : TypeToken<BaseResp<VinConfig>>() {}.type) {
+        oldJob = DownloadManager.requestUrl<VinConfig>(
+            "https://dip-data-msg-parsing-service.prod.k8s.chehejia.com/v1-0/msg-parsing/common/vehicles/pagination?pageNum=1&pageSize=100&vinContains=$vin",
+            object : TypeToken<BaseResp<VinConfig>>() {}.type
+        ) {
             vinConfigMap[vin] = it?.vehSeriesNo ?: "NONE"
             val array = carConfigsMap[vinConfigMap[vin]]
             logTypeComboBox.model = DefaultComboBoxModel(array)
@@ -109,7 +114,14 @@ class DiagramToolWindow : ToolWindowFactory {
         }
     }
 
+    private val progressBar by lazy {
+        JProgressBar().apply {
+            preferredSize = Dimension(800, 50)
+        }
+    }
+
     private val carConfigsMap = HashMap<String, Array<String>>()
+
     init {
         carConfigsMap["M01"] = arrayOf(
             "PROCESSER_820_AND",
@@ -196,23 +208,53 @@ class DiagramToolWindow : ToolWindowFactory {
         )
         carConfigsMap["NONE"] = arrayOf()
     }
+
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val contentFactory = ContentFactory.SERVICE.getInstance()
         initRootView(project)
         val content = contentFactory.createContent(rootView, "", false)
         toolWindow.contentManager.addContent(content)
+        rootView.addComponentListener(object : ComponentListener {
+            override fun componentResized(p0: ComponentEvent?) {
+                val newWidth = (p0?.component?.width ?: 0) - 50
+                sequenceDiagramPanel.preferredSize = Dimension(newWidth, (p0?.component?.height ?: 0) - 150)
+                SequenceDiagramPanel.MAX_WIDTH = newWidth
+                SequenceDiagramPanel.MAX_HEIGHT = (p0?.component?.height ?: 0) - 150
+                sequenceDiagramPanel.revalidate()
+            }
+
+            override fun componentMoved(p0: ComponentEvent?) {
+            }
+
+            override fun componentShown(p0: ComponentEvent?) {
+            }
+
+            override fun componentHidden(p0: ComponentEvent?) {
+            }
+
+
+        })
     }
 
     private fun initRootView(project: Project) {
         val run = JButton("run").apply {
             this.addActionListener {
-                val config = LogConfigBeans(wordsTextArea.text.split(','), logTypeComboBox.selectedItem.toString(), endJXDatePicker.getFormatDate(format), startJXDatePicker.getFormatDate(format), vinConfigPanel.text)
-                DownloadManager.download(project, config, 1, sequenceDiagramPanel) {
+                val config = LogConfigBeans(
+                    wordsTextArea.text.split(','),
+                    logTypeComboBox.selectedItem?.toString() ?: "",
+                    endJXDatePicker.getFormatDate(format),
+                    startJXDatePicker.getFormatDate(format),
+                    vinConfigPanel.text
+                )
+                DownloadManager.download(project, config, 1, sequenceDiagramPanel, onSuccess = {
                     lifecycleSelector.setValues(arrayListOf<String>().apply {
                         add("全选")
                         addAll(sequenceDiagramPanel.diagramDelegate.getDrawLifecycles().map { it.element.className })
                     }.toTypedArray())
-                }
+                }, onProgress = {
+                    progressBar.isVisible = it in 0 until 100
+                    progressBar.value = it
+                })
 
             }
         }
@@ -236,7 +278,18 @@ class DiagramToolWindow : ToolWindowFactory {
         val logTypeTitle = JBLabel("业务类型：").apply {
             preferredSize = Dimension(80, 30)
         }
-        rootView.add(sequenceDiagramPanel, run, lifecycleSelector, vinTitle, vinConfigPanel, timeLine, logTypeTitle, logTypeComboBox, wordsLine)
+        rootView.add(
+            sequenceDiagramPanel,
+            run,
+            lifecycleSelector,
+            vinTitle,
+            vinConfigPanel,
+            timeLine,
+            logTypeTitle,
+            logTypeComboBox,
+            wordsLine,
+            progressBar
+        )
 
         val vinCons = springLayout.getConstraints(vinTitle)
         vinCons.x = Spring.constant(20)
@@ -262,6 +315,8 @@ class DiagramToolWindow : ToolWindowFactory {
 
         sequenceDiagramPanel.topToBottom(run, 20)
         sequenceDiagramPanel.leftToLeft(vinTitle)
+        progressBar.topToTop(sequenceDiagramPanel)
+        progressBar.leftToLeft(sequenceDiagramPanel)
     }
 
 }
