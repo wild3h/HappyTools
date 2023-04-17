@@ -19,7 +19,6 @@ import java.io.*
 import java.lang.reflect.Type
 import java.net.URL
 import java.text.SimpleDateFormat
-import java.util.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import kotlin.collections.ArrayList
@@ -45,35 +44,9 @@ object DownloadManager {
         GlobalScope.launch {
             val res = withContext(Dispatchers.IO) {
                 val listData: ArrayList<SequenceDiagramElement> = arrayListOf()
-                val response: HttpResponse
-                val statusCode: Int
-                val entity: HttpEntity
-                val content: String = try {
-                    val client: HttpClient = DefaultHttpClient()
-                    // 创建HttpGet对象
-                    val url =
-                        "https://dip-data-msg-parsing-service.prod.k8s.chehejia.com/v1-0/msg-parsing/hu-log-files/pagination?collectTimeMax=${config.time_end_date}&collectTimeMin=${config.time_start_date}&logClass=${config.log_type}&vin=${config.vin}&remoteMode=false&pageNo=${pageNo}&pageSize=100&logLevel="
-                    val request = HttpGet(url)
-                    println(url)
-
-                    // 发起请求并获取响应对象
-                    response = client.execute(request)
-                    // 获取响应状态码
-                    val statusLine: StatusLine = response.statusLine
-                    statusCode = statusLine.statusCode
-                    // 获取响应内容
-                    entity = response.entity
-
-                    // 处理响应数据
-                    println("Status code: $statusCode")
-                    println("Response content: $entity")
-                    EntityUtils.toString(entity)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    ""
-                }
+                val url = "https://dip-data-msg-parsing-service.prod.k8s.chehejia.com/v1-0/msg-parsing/hu-log-files/pagination?collectTimeMax=${config.time_end_date}&collectTimeMin=${config.time_start_date}&logClass=${config.log_type}&vin=${config.vin}&remoteMode=false&pageNo=${pageNo}&pageSize=100&logLevel="
+                val content: String = requestUrl(url)
                 val logData = Gson().fromJson<BaseResp<LogItem>>(content, object : TypeToken<BaseResp<LogItem>>() {}.type)
-
                 val totalLength = logData?.data?.total ?: 0
                 val pageNum = totalLength / 100 + 1
                 var addFile = 0
@@ -150,7 +123,7 @@ object DownloadManager {
                                 }
                             } catch (ex: Exception) {
                                 ex.printStackTrace()
-                                downloading = false
+                                NotifyUtil.notifyMessage(ex.message + " " + ex.cause.toString())
                             }
                         } ?: kotlin.run {
                             NotifyUtil.notifyMessage("数据为空")
@@ -194,6 +167,31 @@ object DownloadManager {
             }
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    suspend fun requestUrl(url: String): String {
+        try {
+            val client: HttpClient = DefaultHttpClient()
+            // 创建HttpGet对象
+            val request = HttpGet(url)
+            println(url)
+
+            // 发起请求并获取响应对象
+            val response: HttpResponse = client.execute(request)
+            // 获取响应状态码
+            val statusLine: StatusLine = response.statusLine
+            val statusCode: Int = statusLine.statusCode
+            // 获取响应内容
+            val entity: HttpEntity = response.entity
+            val content: String = EntityUtils.toString(entity)
+            // 处理响应数据
+            println("Status code: $statusCode")
+            println("Response content: $content")
+            return content
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return ""
         }
     }
 }
