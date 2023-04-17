@@ -63,24 +63,7 @@ class DiagramToolWindow : ToolWindowFactory {
 
     private val vinConfigMap = HashMap<String, String>()
     var oldJob: Job? = null
-    private fun updateVinConfig(vin: String) {
-        if (vinConfigMap.contains(vin)) {
-            val array = carConfigsMap[vinConfigMap[vin]]
-            logTypeComboBox.model = DefaultComboBoxModel(array)
-            return
-        }
-        if (oldJob?.isActive == true) {
-            oldJob?.cancel()
-        }
-        oldJob = DownloadManager.requestUrl<VinConfig>(
-            "https://dip-data-msg-parsing-service.prod.k8s.chehejia.com/v1-0/msg-parsing/common/vehicles/pagination?pageNum=1&pageSize=100&vinContains=$vin",
-            object : TypeToken<BaseResp<VinConfig>>() {}.type
-        ) {
-            vinConfigMap[vin] = it?.vehSeriesNo ?: "NONE"
-            val array = carConfigsMap[vinConfigMap[vin]]
-            logTypeComboBox.model = DefaultComboBoxModel(array)
-        }
-    }
+
 
     val format = "yyyy-MM-dd+HH:mm:ss.SSS"
     private val startJXDatePicker by lazy {
@@ -123,7 +106,7 @@ class DiagramToolWindow : ToolWindowFactory {
     private val carConfigsMap = HashMap<String, Array<String>>()
 
     init {
-        carConfigsMap["M01"] = arrayOf(
+        carConfigsMap["M"] = arrayOf(
             "PROCESSER_820_AND",
             "PROCESSER_820_KERNEL",
             "PROCESSER_820_MCU",
@@ -141,7 +124,7 @@ class DiagramToolWindow : ToolWindowFactory {
             "VHAL",
             "cpu_monitor"
         )
-        carConfigsMap["X01"] = arrayOf(
+        carConfigsMap["X"] = arrayOf(
             "log_HUR_8155_android",
             "log_HUF_8155_android",
             "scs_j5_log",
@@ -318,5 +301,29 @@ class DiagramToolWindow : ToolWindowFactory {
         progressBar.topToTop(sequenceDiagramPanel)
         progressBar.leftToLeft(sequenceDiagramPanel)
     }
+    private fun updateVinConfig(vin: String) {
 
+        if (vinConfigMap.contains(vin)) {
+            val vinType = vinConfigMap[vin]
+            val array = carConfigsMap[vinType?.get(0).toString()]
+            logTypeComboBox.model = DefaultComboBoxModel(array)
+            return
+        }
+        if (oldJob?.isActive == true) {
+            oldJob?.cancel()
+        }
+        oldJob = GlobalScope.launch {
+            withContext(Dispatchers.IO){
+                DownloadManager.requestUrl<VinConfig>(
+                    "https://dip-data-msg-parsing-service.prod.k8s.chehejia.com/v1-0/msg-parsing/common/vehicles/pagination?pageNum=1&pageSize=100&vinContains=$vin",
+                    object : TypeToken<BaseResp<VinConfig>>() {}.type
+                ) {
+                    vinConfigMap[vin] = it?.data?.list?.firstOrNull()?.vehSeriesNo ?: "NONE"
+                    val vinType = vinConfigMap[vin]
+                    val array = carConfigsMap[vinType?.get(0).toString()]
+                    logTypeComboBox.model = DefaultComboBoxModel(array)
+                }
+            }
+        }
+    }
 }
