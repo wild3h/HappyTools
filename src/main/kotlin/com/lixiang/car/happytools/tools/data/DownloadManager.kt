@@ -65,7 +65,7 @@ object DownloadManager {
                                 val zis = ZipInputStream(fis)
                                 var ze: ZipEntry? = zis.nextEntry
                                 while (ze != null) {
-                                    val fileName: String = ze.name
+                                    val fileName: String = com.lixiang.car.happytools.tools.util.FileUtils.defaultFileFolder()+ze.name
                                     if (fileName.endsWith(".log")) {
                                         logFiles.add(fileName)
                                         // create a new file to extract the entry
@@ -123,7 +123,7 @@ object DownloadManager {
                                 }
                             } catch (ex: Exception) {
                                 ex.printStackTrace()
-                                NotifyUtil.notifyMessage(ex.message + " " + ex.cause.toString())
+                                NotifyUtil.notifyMessage(ex.stackTraceToString())
                             }
                         } ?: kotlin.run {
                             NotifyUtil.notifyMessage("数据为空")
