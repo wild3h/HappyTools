@@ -13,6 +13,7 @@ import com.intellij.ui.components.JBTextField
 import com.intellij.ui.content.ContentFactory
 import com.lixiang.car.happytools.tools.data.*
 import com.lixiang.car.happytools.tools.util.*
+import com.lixiang.car.happytools.tools.view.DateSelectorView
 import com.lixiang.car.happytools.tools.view.MultiComboBox
 import com.lixiang.car.happytools.tools.view.SequenceDiagramPanel
 import kotlinx.coroutines.*
@@ -67,14 +68,14 @@ class DiagramToolWindow : ToolWindowFactory {
 
     val format = "yyyy-MM-dd+HH:mm:ss.SSS"
     private val startJXDatePicker by lazy {
-        JXDatePicker().apply {
+        DateSelectorView().apply {
             setFormats(format)
             preferredSize = Dimension(250, 30)
         }
     }
 
     private val endJXDatePicker by lazy {
-        JXDatePicker().apply {
+        DateSelectorView().apply {
             setFormats(format)
             preferredSize = Dimension(250, 30)
         }
