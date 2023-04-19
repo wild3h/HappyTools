@@ -1,16 +1,13 @@
 package com.lixiang.car.happytools.tools.toolswindowfactory
 
-import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.JBPopupMenu
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
-import com.intellij.ui.EditorComboBox
 import com.intellij.ui.components.JBLabel
-import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.content.ContentFactory
+import com.intellij.util.containers.toArray
 import com.lixiang.car.happytools.tools.data.*
 import com.lixiang.car.happytools.tools.util.*
 import com.lixiang.car.happytools.tools.view.DateSelectorView
@@ -18,14 +15,17 @@ import com.lixiang.car.happytools.tools.view.MultiComboBox
 import com.lixiang.car.happytools.tools.view.SequenceDiagramPanel
 import kotlinx.coroutines.*
 import org.jdesktop.swingx.JXComboBox
-import org.jdesktop.swingx.JXDatePicker
 import wu.seal.jsontokotlin.ui.jHorizontalLinearLayout
+import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
+import java.io.File
+import java.util.*
 import javax.swing.*
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
+import kotlin.collections.HashMap
 
 
 class DiagramToolWindow : ToolWindowFactory {
@@ -63,21 +63,32 @@ class DiagramToolWindow : ToolWindowFactory {
     }
 
     private val vinConfigMap = HashMap<String, String>()
+
     var oldJob: Job? = null
 
-
+    val dateViewFormat = "yyyy-MM-dd HH:mm:ss"
     val format = "yyyy-MM-dd+HH:mm:ss.SSS"
     private val startJXDatePicker by lazy {
         DateSelectorView().apply {
-            setFormats(format)
+            setFormats(dateViewFormat)
             preferredSize = Dimension(250, 30)
+            editor.isEnabled = false
         }
     }
 
     private val endJXDatePicker by lazy {
         DateSelectorView().apply {
-            setFormats(format)
+            setFormats(dateViewFormat)
             preferredSize = Dimension(250, 30)
+            editor.isEnabled = false
+        }
+    }
+
+    private val occurrenceTimePicker by lazy {
+        DateSelectorView().apply {
+            setFormats(dateViewFormat)
+            preferredSize = Dimension(250, 30)
+            editor.isEnabled = false
         }
     }
 
@@ -91,7 +102,7 @@ class DiagramToolWindow : ToolWindowFactory {
 
     private val wordsLine by lazy {
         jHorizontalLinearLayout {
-            add(JBLabel("过滤词：(支持多个过滤词，需英文逗号隔开)").apply {
+            add(JBLabel("过滤词：(可选项，多个过滤词需英文逗号隔开)").apply {
                 minimumSize = Dimension(10, 30)
             })
             add(wordsTextArea)
@@ -100,11 +111,37 @@ class DiagramToolWindow : ToolWindowFactory {
 
     private val progressBar by lazy {
         JProgressBar().apply {
-            preferredSize = Dimension(800, 50)
+            preferredSize = Dimension(400, 10)
+            isVisible = false
         }
     }
 
     private val carConfigsMap = HashMap<String, Array<String>>()
+
+    private val openFolder by lazy {
+        JButton("打开下载文件夹").apply {
+            addActionListener {
+                try {
+                    val defaultFileFolder = FileUtils.defaultFileFolder()
+                    val file = File(defaultFileFolder)
+                    if (!file.exists()) {
+                        file.mkdir()
+                    }
+                    Desktop.getDesktop().open(file)
+                } catch (ex: Exception) {
+                    ex.printStackTrace()
+                }
+            }
+        }
+    }
+
+    private val occurrenceTimeComboBox by lazy {
+        val toArray = timeHashMap.keys.toArray(arrayOf())
+        toArray.sortBy { timeHashMap[it] }
+        JXComboBox().apply {
+            model = DefaultComboBoxModel(toArray)
+        }
+    }
 
     init {
         carConfigsMap["M"] = arrayOf(
@@ -193,6 +230,16 @@ class DiagramToolWindow : ToolWindowFactory {
         carConfigsMap["NONE"] = arrayOf()
     }
 
+    val timeHashMap = hashMapOf(
+        "半小时" to 30,
+        "1小时" to 60,
+        "2小时" to 60 * 2,
+        "3小时" to 60 * 3,
+        "半天" to 60 * 12,
+        "一天" to 60 * 24,
+        "一周" to 60 * 24 * 7
+    )
+
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val contentFactory = ContentFactory.SERVICE.getInstance()
         initRootView(project)
@@ -203,7 +250,7 @@ class DiagramToolWindow : ToolWindowFactory {
                 val newWidth = (p0?.component?.width ?: 0) - 50
                 sequenceDiagramPanel.preferredSize = Dimension(newWidth, (p0?.component?.height ?: 0) - 150)
                 SequenceDiagramPanel.MAX_WIDTH = newWidth
-                SequenceDiagramPanel.MAX_HEIGHT = (p0?.component?.height ?: 0) - 150
+                SequenceDiagramPanel.MAX_HEIGHT = (p0?.component?.height ?: 0) - 250
                 sequenceDiagramPanel.revalidate()
             }
 
@@ -221,7 +268,7 @@ class DiagramToolWindow : ToolWindowFactory {
     }
 
     private fun initRootView(project: Project) {
-        val run = JButton("run").apply {
+        val run = JButton("Download").apply {
             this.addActionListener {
                 val config = LogConfigBeans(
                     wordsTextArea.text.split(','),
@@ -231,6 +278,7 @@ class DiagramToolWindow : ToolWindowFactory {
                     vinConfigPanel.text
                 )
                 DownloadManager.download(project, config, 1, sequenceDiagramPanel, onSuccess = {
+                    progressBar.isVisible = false
                     lifecycleSelector.setValues(arrayListOf<String>().apply {
                         add("全选")
                         addAll(sequenceDiagramPanel.diagramDelegate.getDrawLifecycles().map { it.element.className })
@@ -253,6 +301,23 @@ class DiagramToolWindow : ToolWindowFactory {
         val endTitle = JBLabel("  结束时间：").apply {
             minimumSize = Dimension(60, 30)
         }
+        occurrenceTimePicker.addPropertyChangeListener("date") {
+            val newValue = it.newValue
+            if (newValue is Date) {
+                changeTime(newValue)
+            }
+        }
+        occurrenceTimeComboBox.addItemListener {
+            val value = occurrenceTimePicker.date ?: return@addItemListener
+            changeTime(value)
+        }
+        val defaultDownloadLine = jHorizontalLinearLayout {
+            add(JBLabel("发生时间：（默认下载此时间前后半小时的log，也可手动选择起止时间）").apply {
+                minimumSize = Dimension(60, 30)
+            })
+            add(occurrenceTimePicker)
+            add(occurrenceTimeComboBox)
+        }
         val timeLine = jHorizontalLinearLayout {
             add(startTitle)
             add(startJXDatePicker)
@@ -269,10 +334,12 @@ class DiagramToolWindow : ToolWindowFactory {
             vinTitle,
             vinConfigPanel,
             timeLine,
+            defaultDownloadLine,
             logTypeTitle,
             logTypeComboBox,
             wordsLine,
-            progressBar
+            progressBar,
+            openFolder
         )
 
         val vinCons = springLayout.getConstraints(vinTitle)
@@ -286,7 +353,9 @@ class DiagramToolWindow : ToolWindowFactory {
         logTypeComboBox.leftToRight(logTypeTitle)
         logTypeComboBox.topToTop(logTypeTitle)
 
-        timeLine.topToBottom(vinTitle)
+        defaultDownloadLine.topToBottom(vinTitle)
+        defaultDownloadLine.leftToLeft(vinTitle)
+        timeLine.topToBottom(defaultDownloadLine)
         timeLine.leftToLeft(vinTitle)
 
         wordsLine.topToBottom(timeLine)
@@ -299,9 +368,21 @@ class DiagramToolWindow : ToolWindowFactory {
 
         sequenceDiagramPanel.topToBottom(run, 20)
         sequenceDiagramPanel.leftToLeft(vinTitle)
-        progressBar.topToTop(sequenceDiagramPanel)
+        progressBar.bottomToTop(sequenceDiagramPanel)
         progressBar.leftToLeft(sequenceDiagramPanel)
+        openFolder.topToBottom(sequenceDiagramPanel)
+        openFolder.leftToLeft(vinConfigPanel)
     }
+
+    private fun changeTime(newValue: Date) {
+        val splitTime = timeHashMap[occurrenceTimeComboBox.selectedItem?.toString()] ?: 30
+        val startTime = Date(newValue.time - splitTime * 60 * 1000)
+        val endTime = Date(newValue.time + splitTime * 60 * 1000)
+
+        startJXDatePicker.date = startTime
+        endJXDatePicker.date = endTime
+    }
+
     private fun updateVinConfig(vin: String) {
 
         if (vinConfigMap.contains(vin)) {
@@ -314,7 +395,7 @@ class DiagramToolWindow : ToolWindowFactory {
             oldJob?.cancel()
         }
         oldJob = GlobalScope.launch {
-            withContext(Dispatchers.IO){
+            withContext(Dispatchers.IO) {
                 DownloadManager.requestUrl<VinConfig>(
                     "https://dip-data-msg-parsing-service.prod.k8s.chehejia.com/v1-0/msg-parsing/common/vehicles/pagination?pageNum=1&pageSize=100&vinContains=$vin",
                     object : TypeToken<BaseResp<VinConfig>>() {}.type

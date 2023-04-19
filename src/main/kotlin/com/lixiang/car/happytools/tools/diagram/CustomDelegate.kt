@@ -83,7 +83,7 @@ class CustomDelegate(private val mParent: SequenceDiagramPanel) : DiagramDelegat
         // mParent.height - drawYStart是从最上到最下需要绘制的部分，但包含上面滑出的部分
         // (-drawYStart-SequenceDiagramPanel.DRAW_START_Y-DiagramConstants.SEQ_HEIGHT-DiagramConstants.OPERATION_SPLIT_Y).coerceAtMost(0)是上限
         // 需要计算出lifecycle的左右限
-        println("parent height=${mParent.height}")
+//        println("parent height=${mParent.height}")
         val bottomLine = mParent.height - drawYStart
         val topLine = (-drawYStart + SequenceDiagramPanel.DRAW_START_Y + SEQ_HEIGHT + OPERATION_SPLIT_Y).coerceAtLeast(SEQ_HEIGHT + OPERATION_SPLIT_Y)
         val operationHeight = stringHeight + OPERATION_PADDING_VERTICAL * 2 + OPERATION_SPLIT_Y

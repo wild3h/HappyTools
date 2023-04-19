@@ -1,1 +1,1 @@
-rootProject.name = "decodeCohttp"
+rootProject.name = "HappyTools"

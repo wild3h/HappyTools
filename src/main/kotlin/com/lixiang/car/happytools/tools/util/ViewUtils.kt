@@ -197,3 +197,8 @@ fun JXDatePicker.getFormatDate(format: String): String {
     return dateFormat.format(date)
 }
 
+fun JXDatePicker.setFormatDate(format: String,time:String) {
+    val dateFormat = SimpleDateFormat(format)
+    date = dateFormat.parse(time)
+}
+

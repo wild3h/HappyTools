@@ -143,6 +143,6 @@ object FileUtils {
     }
 
     fun defaultFileFolder(): String? {
-        return System.getProperty("java.io.tmpdir") + File.separator + "decodeCohttp" + File.separator
+        return System.getProperty("java.io.tmpdir") + File.separator + "HappyToolsTemple" + File.separator
     }
 }

@@ -144,7 +144,7 @@ object DownloadManager {
     }
 
     suspend fun <T> requestUrl(url: String, type: Type, onSuccess: suspend (BaseResp<T>?) -> Unit) {
-        try {
+        val fromJson = try {
             val client: HttpClient = DefaultHttpClient()
             // 创建HttpGet对象
             val request = HttpGet(url)
@@ -161,12 +161,14 @@ object DownloadManager {
             // 处理响应数据
             println("Status code: $statusCode")
             println("Response content: $content")
-            val fromJson = Gson().fromJson<BaseResp<T>>(content, type)
-            withContext(Dispatchers.Default) {
-                onSuccess(fromJson)
-            }
+            Gson().fromJson<BaseResp<T>>(content, type)
+
         } catch (e: Exception) {
             e.printStackTrace()
+            null
+        }
+        withContext(Dispatchers.Default) {
+            onSuccess(fromJson)
         }
     }
 
