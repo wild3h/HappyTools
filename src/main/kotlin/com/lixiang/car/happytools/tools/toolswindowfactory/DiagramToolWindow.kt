@@ -13,6 +13,7 @@ import com.lixiang.car.happytools.tools.util.*
 import com.lixiang.car.happytools.tools.view.DateSelectorView
 import com.lixiang.car.happytools.tools.view.MultiComboBox
 import com.lixiang.car.happytools.tools.view.SequenceDiagramPanel
+import com.lixiang.car.happytools.tools.view.ToolTextField
 import kotlinx.coroutines.*
 import org.jdesktop.swingx.JXComboBox
 import wu.seal.jsontokotlin.ui.jHorizontalLinearLayout
@@ -37,11 +38,9 @@ class DiagramToolWindow : ToolWindowFactory {
         SequenceDiagramPanel()
     }
     private val lifecycleSelector by lazy {
-        MultiComboBox() {
+        MultiComboBox(200) {
             sequenceDiagramPanel.diagramDelegate.setDrawLifecycles(it.toList())
             sequenceDiagramPanel.repaint()
-        }.apply {
-            preferredSize = Dimension(200, 30)
         }
     }
     private val vinConfigPanel by lazy {
@@ -69,25 +68,22 @@ class DiagramToolWindow : ToolWindowFactory {
     val dateViewFormat = "yyyy-MM-dd HH:mm:ss"
     val format = "yyyy-MM-dd+HH:mm:ss.SSS"
     private val startJXDatePicker by lazy {
-        DateSelectorView().apply {
+        DateSelectorView(250).apply {
             setFormats(dateViewFormat)
-            preferredSize = Dimension(250, 30)
             editor.isEnabled = false
         }
     }
 
     private val endJXDatePicker by lazy {
-        DateSelectorView().apply {
+        DateSelectorView(250).apply {
             setFormats(dateViewFormat)
-            preferredSize = Dimension(250, 30)
             editor.isEnabled = false
         }
     }
 
     private val occurrenceTimePicker by lazy {
-        DateSelectorView().apply {
+        DateSelectorView(250).apply {
             setFormats(dateViewFormat)
-            preferredSize = Dimension(250, 30)
             editor.isEnabled = false
         }
     }
@@ -96,9 +92,7 @@ class DiagramToolWindow : ToolWindowFactory {
         JXComboBox(arrayOf("log_HUF_8155_android"))
     }
 
-    private val wordsTextArea = JBTextField().apply {
-        preferredSize = Dimension(300, 30)
-    }
+    private val wordsTextArea = ToolTextField(300)
 
     private val wordsLine by lazy {
         jHorizontalLinearLayout {
@@ -324,50 +318,48 @@ class DiagramToolWindow : ToolWindowFactory {
             add(endTitle)
             add(endJXDatePicker)
         }
-        val logTypeTitle = JBLabel("业务类型：").apply {
+        val logTypeTitle = JBLabel("  业务类型：").apply {
             preferredSize = Dimension(80, 30)
         }
+        val firstLine = jHorizontalLinearLayout {
+            add(vinTitle)
+            add(vinConfigPanel)
+            add(logTypeTitle)
+            add(logTypeComboBox)
+        }
         rootView.add(
+            firstLine,
             sequenceDiagramPanel,
             run,
             lifecycleSelector,
-            vinTitle,
-            vinConfigPanel,
+
             timeLine,
             defaultDownloadLine,
-            logTypeTitle,
-            logTypeComboBox,
+
             wordsLine,
             progressBar,
             openFolder
         )
 
-        val vinCons = springLayout.getConstraints(vinTitle)
-        vinCons.x = Spring.constant(20)
-        vinCons.y = Spring.constant(20)
+        val firstLineCons = springLayout.getConstraints(firstLine)
+        firstLineCons.x = Spring.constant(20)
+        firstLineCons.y = Spring.constant(20)
 
-        vinConfigPanel.leftToRight(vinTitle)
-        vinConfigPanel.topToTop(vinTitle)
-        logTypeTitle.leftToRight(vinConfigPanel)
-        logTypeTitle.topToTop(vinConfigPanel)
-        logTypeComboBox.leftToRight(logTypeTitle)
-        logTypeComboBox.topToTop(logTypeTitle)
-
-        defaultDownloadLine.topToBottom(vinTitle)
-        defaultDownloadLine.leftToLeft(vinTitle)
+        defaultDownloadLine.topToBottom(firstLine)
+        defaultDownloadLine.leftToLeft(firstLine)
         timeLine.topToBottom(defaultDownloadLine)
-        timeLine.leftToLeft(vinTitle)
+        timeLine.leftToLeft(firstLine)
 
         wordsLine.topToBottom(timeLine)
         wordsLine.leftToLeft(timeLine)
 
         run.topToBottom(wordsLine)
-        run.leftToLeft(vinTitle)
+        run.leftToLeft(firstLine)
         lifecycleSelector.leftToRight(run, 5)
         lifecycleSelector.topToTop(run)
 
         sequenceDiagramPanel.topToBottom(run, 20)
-        sequenceDiagramPanel.leftToLeft(vinTitle)
+        sequenceDiagramPanel.leftToLeft(firstLine)
         progressBar.bottomToTop(sequenceDiagramPanel)
         progressBar.leftToLeft(sequenceDiagramPanel)
         openFolder.topToBottom(sequenceDiagramPanel)

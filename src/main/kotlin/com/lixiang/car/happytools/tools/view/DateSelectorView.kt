@@ -1,6 +1,7 @@
 package com.lixiang.car.happytools.tools.view
 
 import org.jdesktop.swingx.JXDatePicker
+import java.awt.Dimension
 import java.util.*
 import javax.swing.*
 import javax.swing.event.ChangeEvent
@@ -9,15 +10,15 @@ import javax.swing.event.DocumentListener
 import javax.swing.text.NumberFormatter
 
 
-class DateSelectorView : JXDatePicker() {
+class DateSelectorView(private val mWidth: Int) : JXDatePicker() {
     var hourValue: Int = 0
     var minValue: Int = 0
     var secondValue: Int = 0
-
+    val timePanel = JPanel()
     init {
         monthView.selectionModel = DayWithHMSSelectionModel(this)
 
-        val timePanel = JPanel()
+
 
         val hourModel = SpinnerNumberModel(0, 0, 23, 1)
         hourModel.addChangeListener {
@@ -100,6 +101,15 @@ class DateSelectorView : JXDatePicker() {
         }
         val secondLabel = JLabel("秒")
         timePanel.add(secondLabel)
+        linkPanel = timePanel
+    }
+
+    override fun getPreferredSize(): Dimension {
+        return Dimension(mWidth, super.getPreferredSize().height)
+    }
+
+    override fun revalidate() {
+        super.revalidate()
         linkPanel = timePanel
     }
 

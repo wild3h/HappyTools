@@ -2,6 +2,7 @@ package com.lixiang.car.happytools.tools.view
 
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.components.JBTextField
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.GridLayout
@@ -15,11 +16,12 @@ import javax.swing.plaf.basic.BasicArrowButton
  * 下拉复选框组件
  *
  */
-class MultiComboBox(val onConfirm:(Array<String>)->Unit) : JComponent(), ActionListener {
+class MultiComboBox(private val mWidth: Int, val onConfirm: (Array<String>) -> Unit) : JComponent(), ActionListener {
     private var popup: MultiPopup? = null
     private var editor: JTextField? = null
     protected var arrowButton: JButton? = null
     private var values: Array<String> = arrayOf("全选")
+
     init {
         initComponent()
     }
@@ -27,10 +29,9 @@ class MultiComboBox(val onConfirm:(Array<String>)->Unit) : JComponent(), ActionL
     private fun initComponent() {
         this.layout = BorderLayout()
         popup = MultiPopup(values)
-        editor = JTextField()
+        editor = ToolTextField(mWidth - 50)
         editor!!.background = JBColor.WHITE
         editor!!.isEditable = false
-        editor!!.preferredSize = Dimension(140, 22)
         editor!!.addActionListener(this)
         arrowButton = createArrowButton()
         arrowButton!!.addActionListener(this)
@@ -41,10 +42,12 @@ class MultiComboBox(val onConfirm:(Array<String>)->Unit) : JComponent(), ActionL
     val selectedValues: Array<String>
         //获取选中的数据
         get() = popup!!.selectedValues
+
     fun setValues(values: Array<String>) {
         this.values = values
         initComponent()
     }
+
     //设置需要选中的值
     fun setSelectValues(selectValues: Array<String>) {
         popup!!.setSelectValues(selectValues)
@@ -70,13 +73,17 @@ class MultiComboBox(val onConfirm:(Array<String>)->Unit) : JComponent(), ActionL
     }
 
     protected fun createArrowButton(): JButton {
-        val button: JButton = BasicArrowButton(
-            BasicArrowButton.SOUTH,
+        val button: JButton = object : BasicArrowButton(
+            SOUTH,
             UIManager.getColor("ComboBox.buttonBackground"),
             UIManager.getColor("ComboBox.buttonShadow"),
             UIManager.getColor("ComboBox.buttonDarkShadow"),
             UIManager.getColor("ComboBox.buttonHighlight")
-        )
+        ) {
+            override fun getPreferredSize(): Dimension {
+                return Dimension(50, editor?.height ?: 30)
+            }
+        }
         button.name = "ComboBox.arrowButton"
         return button
     }
@@ -96,7 +103,7 @@ class MultiComboBox(val onConfirm:(Array<String>)->Unit) : JComponent(), ActionL
             val buttonPane = JPanel()
             this.layout = BorderLayout()
             for (v in values) {
-                val temp = JCheckBox(v.toString())
+                val temp = JCheckBox(v)
                 checkBoxList.add(temp)
             }
             if (checkBoxList[0].text == "全选") {
@@ -126,8 +133,11 @@ class MultiComboBox(val onConfirm:(Array<String>)->Unit) : JComponent(), ActionL
             cancelButton!!.addActionListener(this)
             buttonPane.add(commitButton)
             buttonPane.add(cancelButton)
-            val scrollPaneLayout = JBScrollPane(checkboxPane)
-            scrollPaneLayout.preferredSize = Dimension(140,500)
+            val scrollPaneLayout = object : JBScrollPane(checkboxPane) {
+                override fun getPreferredSize(): Dimension {
+                    return Dimension(140, 30 * (checkBoxList.size).coerceAtMost(7))
+                }
+            }
             scrollPaneLayout.horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
             scrollPaneLayout.verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
             this.add(scrollPaneLayout, BorderLayout.CENTER)
@@ -184,5 +194,9 @@ class MultiComboBox(val onConfirm:(Array<String>)->Unit) : JComponent(), ActionL
                 }
             }
         }
+    }
+
+    override fun getPreferredSize(): Dimension {
+        return Dimension(mWidth, super.getPreferredSize().height)
     }
 }
