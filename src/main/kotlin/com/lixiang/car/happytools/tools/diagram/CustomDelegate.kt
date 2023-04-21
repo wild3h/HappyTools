@@ -52,8 +52,6 @@ class CustomDelegate(private val mParent: SequenceDiagramPanel) : DiagramDelegat
     private var movedYTotal = 0
     private var movedXTotal = 0
 
-    private var scrollNum: Double = 0.0
-
     private var stringHeight by Delegates.notNull<Int>()
 
     private var outSize: Int = 0
@@ -228,8 +226,7 @@ class CustomDelegate(private val mParent: SequenceDiagramPanel) : DiagramDelegat
         val isScrollEvent = JBScrollPane.isScrollEvent(it)
         val isFromSeqPanel = it.source is SequenceDiagramPanel
         if (isScrollEvent && isFromSeqPanel) {
-            scrollNum = (scrollNum + it.preciseWheelRotation).coerceAtLeast(0.0).coerceAtMost(getMaxScrollNum().toDouble())
-            mParent.repaint()
+
         }
     }
 
@@ -243,10 +240,6 @@ class CustomDelegate(private val mParent: SequenceDiagramPanel) : DiagramDelegat
             movedXTotal = (movedXTotal + moveX).coerceAtMost(0)
             drawXStart = (drawXStart + moveX).coerceAtMost(SequenceDiagramPanel.DRAW_START_X)
             drawYStart = (drawYStart + moveY).coerceAtMost(SequenceDiagramPanel.DRAW_START_Y)
-            if (scrollNum < 0 || scrollNum > getMaxScrollNum()) {
-                return
-            }
-            scrollNum = (scrollNum + moveY / 20.0).coerceAtLeast(0.0).coerceAtMost(getMaxScrollNum().toDouble())
             mParent.repaint()
             lastClickX = currentX
             lastClickY = currentY
@@ -305,9 +298,5 @@ class CustomDelegate(private val mParent: SequenceDiagramPanel) : DiagramDelegat
             }
         }
         selectedElements = selectedElement
-    }
-
-    private fun getMaxScrollNum(): Int {
-        return abs((elements.size * (DiagramConstants.OPERATION_HEIGHT + OPERATION_SPLIT_Y) + SEQ_HEIGHT + 50 - SequenceDiagramPanel.MAX_HEIGHT) / 20)
     }
 }
