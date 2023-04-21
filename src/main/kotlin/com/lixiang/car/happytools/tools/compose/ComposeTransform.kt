@@ -1,16 +1,19 @@
 package com.lixiang.car.happytools.tools.compose
 
+import kotlinparse.KotlinLexer
+import kotlinparse.KotlinParser
+import org.antlr.v4.runtime.CharStreams
+import org.antlr.v4.runtime.CommonTokenStream
+
 object ComposeTransform {
-    fun parseComposeFunction(composeCode: String): ComposeMethod {
+    fun parseComposeFunction(composeCode: String): KotlinParser.KotlinFileContext {
 
-        val regex = Regex("(\\w+)\\((.*)\\)")
-        val matchResult = regex.find(composeCode)
+        val charStream = CharStreams.fromString(composeCode)
+        val lexer = KotlinLexer(charStream)
+        val tokenStream = CommonTokenStream(lexer)
+        val parser = KotlinParser(tokenStream)
 
-        // 定义实体类
-        val methodName = matchResult?.groups?.get(1)?.value
-        val params = matchResult?.groups?.get(2)?.value?.split(",")?.map { it.trim() }
 
-        // 返回结果
-        return ComposeMethod(methodName ?: "", params ?: emptyList())
+        return parser.kotlinFile()
     }
 }
