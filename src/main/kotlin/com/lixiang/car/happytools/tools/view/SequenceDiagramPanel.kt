@@ -28,7 +28,7 @@ class SequenceDiagramPanel : JPanel() {
     companion object {
         var MAX_WIDTH = 800
         var MAX_HEIGHT = 700
-        const val DRAW_START_X = 150
+        var DRAW_START_X = 180
         const val DRAW_START_Y = 20
     }
 
@@ -80,6 +80,7 @@ class SequenceDiagramPanel : JPanel() {
         diagramDelegate?.repaint()
         diagramDelegate.onMeasure(g)
         diagramDelegate.onDraw(g)
+
 
         //println("paintComponent ${System.currentTimeMillis() - lastTime}")
 //        drawAtLast(g)

@@ -35,7 +35,7 @@ object FileUtils {
                 var i = 0
                 while (str.hasMoreTokens()) {
                     val nextToken = str.nextToken()
-                    if (nextToken.isEmpty()){
+                    if (nextToken.isEmpty()) {
                         continue
                     }
                     val fileNameMaybe = if (i == 0) {
@@ -143,6 +143,18 @@ object FileUtils {
     }
 
     fun defaultFileFolder(): String? {
-        return System.getProperty("java.io.tmpdir") + File.separator + "HappyToolsTemple" + File.separator
+        val fold = System.getProperty("java.io.tmpdir") + File.separator + "HappyToolsTemple" + File.separator
+        if (!File(fold).exists()) {
+            File(fold).mkdirs()
+        }
+        return fold
+    }
+
+    fun getFilterFileFolder():String{
+        val fold = defaultFileFolder() + "filter" + File.separator
+        if (!File(fold).exists()) {
+            File(fold).mkdirs()
+        }
+        return fold
     }
 }

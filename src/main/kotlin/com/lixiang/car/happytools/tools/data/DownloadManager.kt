@@ -65,7 +65,7 @@ object DownloadManager {
                                 val zis = ZipInputStream(fis)
                                 var ze: ZipEntry? = zis.nextEntry
                                 while (ze != null) {
-                                    val fileName: String = com.lixiang.car.happytools.tools.util.FileUtils.defaultFileFolder()+ze.name
+                                    val fileName: String = com.lixiang.car.happytools.tools.util.FileUtils.defaultFileFolder() + ze.name
                                     if (fileName.endsWith(".log")) {
                                         logFiles.add(fileName)
                                         // create a new file to extract the entry
@@ -94,23 +94,24 @@ object DownloadManager {
                                             if (keyWord.isBlank()) {
                                                 return@forEach
                                             }
-                                            if (line.toString().contains(keyWord)) {
+                                            val lineStr = line.toString()
+                                            if (lineStr.contains(keyWord)) {
                                                 val pattern = Regex("\\d{4}-\\d{2}-\\d{2}\\ \\d{2}:\\d{2}:\\d{2}.\\d{3}")
-                                                val matches = pattern.findAll(line.toString()).map { it.value }.toList()
+                                                val matches = pattern.findAll(lineStr).map { it.value }.toList()
                                                 matches.firstOrNull()?.let { time ->
                                                     val timePattern = "yyyy-MM-dd HH:mm:ss.SSS"
                                                     val dateFormat = SimpleDateFormat(timePattern)
                                                     val date = dateFormat.parse(time)
                                                     val timestamp = date?.time ?: 0
-                                                    val charAt = line.toString().indexOf(':', 38)
+                                                    val charAt = lineStr.indexOf(':', 38)
                                                     listData.add(
                                                         SequenceDiagramElement(
                                                             timestamp,
                                                             time,
-                                                            line.toString().substring(24, 30),
-                                                            line.toString().substring(38, charAt.coerceAtLeast(38)),
-                                                            line.toString().substring(charAt.coerceAtLeast(38) + 1)
-                                                        )
+                                                            lineStr.substring(24, 30),
+                                                            lineStr.substring(30, 36),
+                                                            lineStr.substring(38, charAt.coerceAtLeast(38)),
+                                                            lineStr.substring(charAt.coerceAtLeast(38) + 1), lineStr)
                                                     )
                                                 }
                                             }
@@ -168,7 +169,11 @@ object DownloadManager {
             null
         }
         withContext(Dispatchers.Default) {
-            onSuccess(fromJson)
+            try {
+                onSuccess(fromJson)
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+            }
         }
     }
 

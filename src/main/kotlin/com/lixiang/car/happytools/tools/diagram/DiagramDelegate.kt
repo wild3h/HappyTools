@@ -27,6 +27,8 @@ interface DiagramDelegate {
 
     fun setElement(data: List<SequenceDiagramElement>)
 
+    fun getSelectedElement(): List<SequenceDiagramElement>
+
     fun getDrawLifecycles(): List<SeqLifecycle>
 
     fun setDrawLifecycles(data: List<String>)

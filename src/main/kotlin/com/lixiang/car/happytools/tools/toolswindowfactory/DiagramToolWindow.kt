@@ -22,6 +22,7 @@ import java.awt.Dimension
 import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
 import java.io.File
+import java.text.SimpleDateFormat
 import java.util.*
 import javax.swing.*
 import javax.swing.event.DocumentEvent
@@ -100,6 +101,7 @@ class DiagramToolWindow : ToolWindowFactory {
                 minimumSize = Dimension(10, 30)
             })
             add(wordsTextArea)
+            add(saveButton)
         }
     }
 
@@ -137,102 +139,32 @@ class DiagramToolWindow : ToolWindowFactory {
         }
     }
 
-    init {
-        carConfigsMap["M"] = arrayOf(
-            "PROCESSER_820_AND",
-            "PROCESSER_820_KERNEL",
-            "PROCESSER_820_MCU",
-            "PROCESSER_J6",
-            "PROCESSER_ANR",
-            "PROCESSER_TOMBSTONE",
-            "PROCESSER_SYS",
-            "DROPBOX",
-            "BLUETOOTH",
-            "MODEM_HEART_BEAT",
-            "EGWPCAP",
-            "TOUCH",
-            "NPU",
-            "noa",
-            "VHAL",
-            "cpu_monitor"
-        )
-        carConfigsMap["X"] = arrayOf(
-            "log_HUR_8155_android",
-            "log_HUF_8155_android",
-            "scs_j5_log",
-            "scs_g3_log",
-            "log_HUR_oom",
-            "log_HUR_rawdump",
-            "log_HUR_adsp_subsys",
-            "log_HUR_adsp",
-            "log_5G_kernel",
-            "log_5G_APNRT",
-            "log_HUF_adsp_subsys",
-            "log_HUF_adsp",
-            "log_xcu_bms",
-            "log_xcu_fbcm",
-            "log_5G_APRT",
-            "log_xcu_rbcm",
-            "log_HUF_rawdump",
-            "log_HUF_oom",
-            "nvh_eol",
-            "nvh_server",
-            "res_mileage",
-            "lisysm_uploader",
-            "log_HUF_pcap",
-            "log_HUR_5G_kernel",
-            "log_HUR_pcap",
-            "log_HUR_Klog",
-            "log_HUF_Klog",
-            "log_xcu_pstore",
-            "log_xcu_pcap",
-            "log_xcu_bluetooth",
-            "log_xcu_kernel",
-            "log_xcu_application",
-            "log_xcu_service",
-            "log_HUF_crash_event",
-            "log_HUR_5G_APRT",
-            "log_HUF_bluetooth",
-            "log_HUF_crash_panic",
-            "log_HUF_mcu",
-            "log_HUF_kernel",
-            "log_HUR_crash_event",
-            "log_HUR_kernel",
-            "log_HUF_touchbar",
-            "log_HUF_crash_anr",
-            "log_xcu_debug",
-            "log_xcu_coredump",
-            "log_xcu_mcu",
-            "log_HUR_crash_panic",
-            "log_HUR_crash_anr",
-            "log_HUR_dropbox",
-            "log_HUF_roofbar",
-            "log_HUF_amp",
-            "log_HUR_bluetooth",
-            "log_gbt32960",
-            "log_HUF_dropbox",
-            "log_HUR_crash_tmston",
-            "log_HUR_crash_sys",
-            "log_HUR_5G_APNRT",
-            "log_fsdB",
-            "log_fsdA",
-            "log_HUF_hud",
-            "log_HUF_crash_tmston",
-            "log_xcu",
-            "log_HUF_crash_sys"
-        )
-        carConfigsMap["NONE"] = arrayOf()
+    //创建一个懒加载的按钮，用于点击后，执行保存文件操作
+    private val saveButton by lazy {
+        JButton("保存过滤结果").apply {
+            addActionListener {
+                val selectedElement = sequenceDiagramPanel.diagramDelegate.getSelectedElement()
+                if (selectedElement.isEmpty()) {
+                    notifyText("请先点下载分析数据~")
+                    return@addActionListener
+                }
+                //先获取当前时间戳，然后将时间戳格式化成字符串，最后将字符串拼接到文件名中
+                val currentTimeMillis = System.currentTimeMillis()
+                val format = SimpleDateFormat("yyyy-MM-dd-HH-mm-ss")
+                val dateStr = format.format(currentTimeMillis)
+                val fileName = FileUtils.getFilterFileFolder() + dateStr + ".log"
+                val file = File(fileName)
+                if (!file.exists()) {
+                    file.createNewFile()
+                }
+                selectedElement.forEach { element ->
+                    file.appendText(element.toString())
+                    file.appendText("\n")
+                }
+                Desktop.getDesktop().open(File(FileUtils.getFilterFileFolder()))
+            }
+        }
     }
-
-    val timeHashMap = hashMapOf(
-        "半小时" to 30,
-        "1小时" to 60,
-        "2小时" to 60 * 2,
-        "3小时" to 60 * 3,
-        "半天" to 60 * 12,
-        "一天" to 60 * 24,
-        "一周" to 60 * 24 * 7
-    )
 
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val contentFactory = ContentFactory.SERVICE.getInstance()
@@ -242,9 +174,10 @@ class DiagramToolWindow : ToolWindowFactory {
         rootView.addComponentListener(object : ComponentListener {
             override fun componentResized(p0: ComponentEvent?) {
                 val newWidth = (p0?.component?.width ?: 0) - 50
-                sequenceDiagramPanel.preferredSize = Dimension(newWidth, (p0?.component?.height ?: 0) - 150)
+                val newHeight = (p0?.component?.height ?: 0) - sequenceDiagramPanel.y-50
+                sequenceDiagramPanel.preferredSize = Dimension(newWidth, newHeight)
                 SequenceDiagramPanel.MAX_WIDTH = newWidth
-                SequenceDiagramPanel.MAX_HEIGHT = (p0?.component?.height ?: 0) - 250
+                SequenceDiagramPanel.MAX_HEIGHT = newHeight
                 sequenceDiagramPanel.revalidate()
             }
 
@@ -264,6 +197,23 @@ class DiagramToolWindow : ToolWindowFactory {
     private fun initRootView(project: Project) {
         val run = JButton("Download").apply {
             this.addActionListener {
+                vinConfigPanel.text.let {
+                    if (it.isEmpty() or it.isBlank()) {
+                        notifyText("VIN不能为空")
+                    }
+                }
+                if (startJXDatePicker.date == null) {
+                    notifyText("开始时间不能为空")
+                    return@addActionListener
+                }
+                if (endJXDatePicker.date == null) {
+                    notifyText("结束时间不能为空")
+                    return@addActionListener
+                }
+                if (startJXDatePicker.date.after(endJXDatePicker.date)) {
+                    notifyText("开始时间不能大于结束时间")
+                    return@addActionListener
+                }
                 val config = LogConfigBeans(
                     wordsTextArea.text.split(','),
                     logTypeComboBox.selectedItem?.toString() ?: "",
@@ -380,8 +330,12 @@ class DiagramToolWindow : ToolWindowFactory {
         if (vinConfigMap.contains(vin)) {
             val vinType = vinConfigMap[vin]
             val array = carConfigsMap[vinType?.get(0).toString()]
-            logTypeComboBox.model = DefaultComboBoxModel(array)
-            return
+
+            if (array!=null){
+                logTypeComboBox.model = DefaultComboBoxModel(array)
+                return
+            }
+
         }
         if (oldJob?.isActive == true) {
             oldJob?.cancel()
@@ -392,12 +346,110 @@ class DiagramToolWindow : ToolWindowFactory {
                     "https://dip-data-msg-parsing-service.prod.k8s.chehejia.com/v1-0/msg-parsing/common/vehicles/pagination?pageNum=1&pageSize=100&vinContains=$vin",
                     object : TypeToken<BaseResp<VinConfig>>() {}.type
                 ) {
-                    vinConfigMap[vin] = it?.data?.list?.firstOrNull()?.vehSeriesNo ?: "NONE"
+                    vinConfigMap[vin] = it?.data?.list?.firstOrNull()?.vehSeriesNo ?: "X"
+                    notifyText("发生一次异常此vin码 $vin 未找到对应车型 返回数据$it，但默认应用了X平台匹配规则")
                     val vinType = vinConfigMap[vin]
-                    val array = carConfigsMap[vinType?.get(0).toString()]
+                    val array = carConfigsMap[vinType?.get(0).toString()]?: arrayOf()
                     logTypeComboBox.model = DefaultComboBoxModel(array)
                 }
             }
         }
     }
+
+    init {
+        carConfigsMap["M"] = arrayOf(
+            "PROCESSER_820_AND",
+            "PROCESSER_820_KERNEL",
+            "PROCESSER_820_MCU",
+            "PROCESSER_J6",
+            "PROCESSER_ANR",
+            "PROCESSER_TOMBSTONE",
+            "PROCESSER_SYS",
+            "DROPBOX",
+            "BLUETOOTH",
+            "MODEM_HEART_BEAT",
+            "EGWPCAP",
+            "TOUCH",
+            "NPU",
+            "noa",
+            "VHAL",
+            "cpu_monitor"
+        )
+        carConfigsMap["X"] = arrayOf(
+            "log_HUR_8155_android",
+            "log_HUF_8155_android",
+            "scs_j5_log",
+            "scs_g3_log",
+            "log_HUR_oom",
+            "log_HUR_rawdump",
+            "log_HUR_adsp_subsys",
+            "log_HUR_adsp",
+            "log_5G_kernel",
+            "log_5G_APNRT",
+            "log_HUF_adsp_subsys",
+            "log_HUF_adsp",
+            "log_xcu_bms",
+            "log_xcu_fbcm",
+            "log_5G_APRT",
+            "log_xcu_rbcm",
+            "log_HUF_rawdump",
+            "log_HUF_oom",
+            "nvh_eol",
+            "nvh_server",
+            "res_mileage",
+            "lisysm_uploader",
+            "log_HUF_pcap",
+            "log_HUR_5G_kernel",
+            "log_HUR_pcap",
+            "log_HUR_Klog",
+            "log_HUF_Klog",
+            "log_xcu_pstore",
+            "log_xcu_pcap",
+            "log_xcu_bluetooth",
+            "log_xcu_kernel",
+            "log_xcu_application",
+            "log_xcu_service",
+            "log_HUF_crash_event",
+            "log_HUR_5G_APRT",
+            "log_HUF_bluetooth",
+            "log_HUF_crash_panic",
+            "log_HUF_mcu",
+            "log_HUF_kernel",
+            "log_HUR_crash_event",
+            "log_HUR_kernel",
+            "log_HUF_touchbar",
+            "log_HUF_crash_anr",
+            "log_xcu_debug",
+            "log_xcu_coredump",
+            "log_xcu_mcu",
+            "log_HUR_crash_panic",
+            "log_HUR_crash_anr",
+            "log_HUR_dropbox",
+            "log_HUF_roofbar",
+            "log_HUF_amp",
+            "log_HUR_bluetooth",
+            "log_gbt32960",
+            "log_HUF_dropbox",
+            "log_HUR_crash_tmston",
+            "log_HUR_crash_sys",
+            "log_HUR_5G_APNRT",
+            "log_fsdB",
+            "log_fsdA",
+            "log_HUF_hud",
+            "log_HUF_crash_tmston",
+            "log_xcu",
+            "log_HUF_crash_sys"
+        )
+        carConfigsMap["NONE"] = arrayOf()
+    }
+
+    val timeHashMap = hashMapOf(
+        "半小时" to 30,
+        "1小时" to 60,
+        "2小时" to 60 * 2,
+        "3小时" to 60 * 3,
+        "半天" to 60 * 12,
+        "一天" to 60 * 24,
+        "一周" to 60 * 24 * 7
+    )
 }

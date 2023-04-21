@@ -10,6 +10,7 @@ import com.google.gson.JsonParser
 import com.intellij.util.io.DigestUtil
 import com.lixiang.car.happytools.tools.decode.UnZipFormator
 import java.net.URLEncoder
+import java.text.SimpleDateFormat
 import java.util.*
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
@@ -201,4 +202,10 @@ fun String.jsonFormat(): String {
     val jsonObject = JsonParser.parseString(this).asJsonObject
     val gson = GsonBuilder().setPrettyPrinting().create()
     return gson.toJson(jsonObject)
+}
+
+fun String.formatToTime(): String {
+    val time = this.toLong()
+    val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    return format.format(Date(time))
 }

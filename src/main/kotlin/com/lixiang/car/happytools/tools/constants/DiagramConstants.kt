@@ -7,9 +7,9 @@ object DiagramConstants {
 
     const val OPERATION_WIDTH = 150
     const val OPERATION_HEIGHT = 40
-    const val OPERATION_SPLIT_Y = 10
-    const val OPERATION_PADDING_VERTICAL = 10
-    const val OPERATION_PADDING_HORIZONTAL = 10
+    const val OPERATION_SPLIT_Y = 5
+    const val OPERATION_PADDING_VERTICAL = 5
+    const val OPERATION_PADDING_HORIZONTAL = 5
 
     const val MAX_CHAR_ONE_LINE = 20
 }

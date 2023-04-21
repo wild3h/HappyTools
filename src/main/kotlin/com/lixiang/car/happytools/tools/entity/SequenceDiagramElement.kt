@@ -1,15 +1,18 @@
 package com.lixiang.car.happytools.tools.entity
 
 import com.lixiang.car.happytools.tools.constants.DiagramConstants.MAX_CHAR_ONE_LINE
+import com.lixiang.car.happytools.tools.util.formatToTime
 
 data class SequenceDiagramElement(
     val time: Long = 0,
-    val timeStr :String,
+    val timeStr: String,
     val pid: String,
+    val tid: String,
     var className: String,
-    var operation: String
+    var operation: String,
+    var lineString: String
 ) {
-    private lateinit var formatOpt:String
+    private lateinit var formatOpt: String
     fun isActivity(): Boolean {
         return className.contains("Activity", ignoreCase = true)
     }
@@ -18,8 +21,8 @@ data class SequenceDiagramElement(
         return list.contains(this.className)
     }
 
-    fun getFormatOpt():String{
-        if (!::formatOpt.isInitialized){
+    fun getFormatOpt(): String {
+        if (!::formatOpt.isInitialized) {
             val builder = StringBuilder()
             className.forEachIndexed { index, c ->
                 builder.append(c)
@@ -41,5 +44,9 @@ data class SequenceDiagramElement(
 
     override fun hashCode(): Int {
         return className.hashCode()
+    }
+
+    override fun toString(): String {
+        return lineString
     }
 }

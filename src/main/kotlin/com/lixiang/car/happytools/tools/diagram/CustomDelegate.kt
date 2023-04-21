@@ -79,6 +79,7 @@ class CustomDelegate(private val mParent: SequenceDiagramPanel) : DiagramDelegat
 
     override fun onMeasure(g: Graphics) {
         stringHeight = StringMetrics.getStringHeight("test", g.font, g)
+        SequenceDiagramPanel.DRAW_START_X = StringMetrics.getStringWidth("2023-04-19 23:48:12.150  6138  7931", g.font, g)
         // 需要计算出element的上下限 element的上下限取决于窗口高度和drawYStart
         // mParent.height - drawYStart是从最上到最下需要绘制的部分，但包含上面滑出的部分
         // (-drawYStart-SequenceDiagramPanel.DRAW_START_Y-DiagramConstants.SEQ_HEIGHT-DiagramConstants.OPERATION_SPLIT_Y).coerceAtMost(0)是上限
@@ -154,7 +155,7 @@ class CustomDelegate(private val mParent: SequenceDiagramPanel) : DiagramDelegat
         g.drawString(text, drawStartX + OPERATION_PADDING_HORIZONTAL, drawStartY + OPERATION_PADDING_VERTICAL + stringHeight)
         lastDrawY = drawStartY
 
-        val timeStr = drawOperation.timeStr + " " + drawOperation.pid
+        val timeStr = drawOperation.timeStr + " " + drawOperation.pid+ " " + drawOperation.tid
         drawRect(g, 0, drawStartY, StringMetrics.getStringWidth(timeStr, g.font, g), stringHeight + OPERATION_PADDING_VERTICAL * 2 + OPERATION_SPLIT_Y)
         g.drawString(
             timeStr,
@@ -279,6 +280,10 @@ class CustomDelegate(private val mParent: SequenceDiagramPanel) : DiagramDelegat
         this.lifecycleList = map
         this.drawLifecycles = map
         mParent.repaint()
+    }
+
+    override fun getSelectedElement(): List<SequenceDiagramElement> {
+        return selectedElements
     }
 
     override fun getDrawLifecycles(): List<SeqLifecycle> {
