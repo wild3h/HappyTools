@@ -14,19 +14,49 @@ object MainTest {
     fun main(args: Array<String>) {
         val code = """
     @Composable
-    private fun CancelButton() {
-        Image(
-            bitmap = LegoR.drawableAsImageBitmap(id = "mine_btn_cancel"),
-            contentDescription = resources.getString(R.string.mine_detail_cancel),
+    private fun DeleteButton() {
+        Box(
             modifier = Modifier
-                .width(140.dp)
+                .width(250.dp)
                 .height(140.dp)
-                .clickable {
-                    mViewModel.switchEditMode(false)
-                    mViewModel.selectItemCount = 0
+                .clip(RoundedCornerShape(20.dp))
+                .background(
+                    color = LegoR.color(
+                        id = if (mViewModel.selectItemCount != 0) {
+                            "mine_del_btn_selected_bg"
+                        } else {
+                            "mine_del_btn_bg"
+                        }
+                    )
+                )
+                .description(R.string.mine_delete)
+                .clickable(enabled = mViewModel.selectItemCount != 0) {
+                    mViewModel.deleteSelected()
                     sendAccessibilityClickEvent()
-                }
-        )
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = if (mViewModel.selectItemCount != 0) {
+                    "删除"
+                } else {
+                    "删除"
+                },
+                fontSize = 36.sp,
+                color = if (mViewModel.selectItemCount != 0) {
+                    Color.White
+                } else {
+                    LegoR.color(id = "main_detail_text_color")
+                },
+                modifier = Modifier.alpha(
+                    if (mViewModel.selectItemCount != 0) {
+                        0.7f
+                    } else {
+                        0.3f
+                    }
+                )
+            )
+        }
     }
 """.trimIndent()
         parseCompose(code).forEach {
@@ -45,10 +75,26 @@ object MainTest {
             private val argsList = mutableListOf<String>()
             override fun enterValueArgument(ctx: KotlinParser.ValueArgumentContext?) {
                 super.enterValueArgument(ctx)
-//                println(ctx?.simpleIdentifier()?.text)
-//                val argument = ctx?.expression()?.text
-//                println(argument)
-//                println("__________")
+                val args = ctx?.simpleIdentifier()?.text
+                val argument = ctx?.expression()?.text
+                if (args != null && argument != null) {
+                    argsList.add("enterValueArgument")
+                    argsList.add(args)
+                    argsList.add(argument)
+                    argsList.add("enterValueArgument over")
+                }
+            }
+
+            override fun exitValueArgument(ctx: KotlinParser.ValueArgumentContext?) {
+                super.exitValueArgument(ctx)
+                val args = ctx?.simpleIdentifier()?.text
+                val argument = ctx?.expression()?.text
+                if (args != null && argument != null) {
+                    argsList.add("exitValueArgument")
+                    argsList.add(args)
+                    argsList.add(argument)
+                    argsList.add("exitValueArgument over")
+                }
             }
 
             override fun enterEveryRule(ctx: ParserRuleContext?) {
@@ -58,16 +104,30 @@ object MainTest {
 //                println("__________")
             }
 
+            override fun enterBlock(ctx: KotlinParser.BlockContext?) {
+                super.enterBlock(ctx)
+//                println(ctx?.text)
+//                println("__________")
+            }
+
+            override fun enterLambdaLiteral(ctx: KotlinParser.LambdaLiteralContext?) {
+                super.enterLambdaLiteral(ctx)
+                val text = ctx?.text
+                //去掉text的前后大括号和最前面的空格
+                val trimText = text?.substring(1, text.length - 1)?.trimStart()
+                //如果trimText是以Text开头或者Box开头，打印这个trimText
+                if (trimText?.startsWith("Text") == true || trimText?.startsWith("Box") == true) {
+                    argsList.add(trimText)
+                }
+            }
+
             override fun enterPrimaryExpression(ctx: KotlinParser.PrimaryExpressionContext?) {
                 super.enterPrimaryExpression(ctx)
-                println(ctx?.callableReference()?.text)
-                println(ctx?.functionLiteral()?.text)
-                println(ctx?.objectLiteral()?.text)
-                println(ctx?.collectionLiteral()?.text)
-                println(ctx?.thisExpression()?.text)
-                println(ctx?.superExpression()?.text)
-                println(ctx?.ifExpression()?.text)
-                println("__________")
+                val text = ctx?.text
+                //如果text是以Text开头或者Box开头，打印这个text
+                if (text?.startsWith("Text") == true || text?.startsWith("Box") == true) {
+                    argsList.add(text)
+                }
             }
 
             override fun enterSimpleIdentifier(ctx: KotlinParser.SimpleIdentifierContext?) {
