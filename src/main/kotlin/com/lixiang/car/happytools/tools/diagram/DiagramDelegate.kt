@@ -6,30 +6,39 @@ import java.awt.Graphics
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 
-interface DiagramDelegate {
+abstract class DiagramDelegate {
 
-    fun repaint()
-    fun onMeasure(g: Graphics)
+    protected val scrollListener: ArrayList<(scrollTotal: Int) -> Unit> = arrayListOf()
 
-    fun onDraw(g: Graphics)
+    abstract fun repaint()
+    abstract fun onMeasure(g: Graphics)
 
-    fun mouseWheelMoved(e: MouseWheelEvent)
+    abstract fun onDraw(g: Graphics)
 
-    fun mouseDragged(e: MouseEvent?)
+    abstract fun mouseWheelMoved(e: MouseWheelEvent)
 
-    fun mouseMoved(e: MouseEvent?)
+    abstract fun mouseDragged(e: MouseEvent?)
 
-    fun mousePressed(e: MouseEvent?)
+    abstract fun mouseMoved(e: MouseEvent?)
 
-    fun mouseReleased(e: MouseEvent?)
+    abstract fun mousePressed(e: MouseEvent?)
 
-    fun mouseExited(e: MouseEvent?)
+    abstract fun mouseReleased(e: MouseEvent?)
 
-    fun setElement(data: List<SequenceDiagramElement>)
+    abstract fun mouseExited(e: MouseEvent?)
 
-    fun getSelectedElement(): List<SequenceDiagramElement>
+    abstract fun setElement(data: List<SequenceDiagramElement>)
 
-    fun getDrawLifecycles(): List<SeqLifecycle>
+    abstract fun getSelectedElement(): List<SequenceDiagramElement>
 
-    fun setDrawLifecycles(data: List<String>)
+    abstract fun getDrawLifecycles(): List<SeqLifecycle>
+
+    abstract fun setDrawLifecycles(data: List<String>)
+
+    open fun onScrolling(changeValue: Int) {
+    }
+
+    fun addScrollListener(listener: (scrollTotal: Int) -> Unit) {
+        scrollListener.add(listener)
+    }
 }

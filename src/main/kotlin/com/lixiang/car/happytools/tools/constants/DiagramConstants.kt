@@ -12,4 +12,6 @@ object DiagramConstants {
     const val OPERATION_PADDING_HORIZONTAL = 5
 
     const val MAX_CHAR_ONE_LINE = 20
+
+    const val SCROLL_SIZE_PER = 50
 }

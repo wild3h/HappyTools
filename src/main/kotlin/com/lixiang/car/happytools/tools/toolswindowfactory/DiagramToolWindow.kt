@@ -5,6 +5,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBScrollBar
+import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.content.ContentFactory
 import com.intellij.util.containers.toArray
@@ -28,6 +30,7 @@ import javax.swing.*
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import kotlin.collections.HashMap
+import kotlin.math.abs
 
 
 class DiagramToolWindow : ToolWindowFactory {
@@ -166,6 +169,12 @@ class DiagramToolWindow : ToolWindowFactory {
         }
     }
 
+    private val scrollBar by lazy {
+        JBScrollBar(JBScrollBar.VERTICAL).apply {
+            preferredSize = Dimension(50, SequenceDiagramPanel.MAX_HEIGHT)
+        }
+    }
+
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val contentFactory = ContentFactory.SERVICE.getInstance()
         initRootView(project)
@@ -173,12 +182,14 @@ class DiagramToolWindow : ToolWindowFactory {
         toolWindow.contentManager.addContent(content)
         rootView.addComponentListener(object : ComponentListener {
             override fun componentResized(p0: ComponentEvent?) {
-                val newWidth = (p0?.component?.width ?: 0) - 50
-                val newHeight = (p0?.component?.height ?: 0) - sequenceDiagramPanel.y-50
+                val newWidth = (p0?.component?.width ?: 0) - 100
+                val newHeight = (p0?.component?.height ?: 0) - sequenceDiagramPanel.y - 50
                 sequenceDiagramPanel.preferredSize = Dimension(newWidth, newHeight)
                 SequenceDiagramPanel.MAX_WIDTH = newWidth
                 SequenceDiagramPanel.MAX_HEIGHT = newHeight
                 sequenceDiagramPanel.revalidate()
+                scrollBar.preferredSize = Dimension(50, newHeight)
+                scrollBar.revalidate()
             }
 
             override fun componentMoved(p0: ComponentEvent?) {
@@ -277,6 +288,24 @@ class DiagramToolWindow : ToolWindowFactory {
             add(logTypeTitle)
             add(logTypeComboBox)
         }
+        val boundedRangeModel = DefaultBoundedRangeModel(0, 10, 0, 100)
+        scrollBar.model = boundedRangeModel
+        var lastScrollBarValue = scrollBar.value
+        scrollBar.addAdjustmentListener {
+            sequenceDiagramPanel.diagramDelegate.onScrolling(it.value - lastScrollBarValue)
+            lastScrollBarValue = it.value
+        }
+        sequenceDiagramPanel.diagramDelegate.addScrollListener { scrollTotal ->
+            //修改scrollBar的显示状态
+            //scrollBar.value = abs(scrollTotal)
+        }
+        scrollBar.addMouseWheelListener {
+            val isScrollEvent = JBScrollPane.isScrollEvent(it)
+            val isFromSeqPanel = it.source is JBScrollBar
+            if (isScrollEvent && isFromSeqPanel) {
+                sequenceDiagramPanel.diagramDelegate.onScrolling(it.preciseWheelRotation.toInt())
+            }
+        }
         rootView.add(
             firstLine,
             sequenceDiagramPanel,
@@ -288,7 +317,8 @@ class DiagramToolWindow : ToolWindowFactory {
 
             wordsLine,
             progressBar,
-            openFolder
+            openFolder,
+            scrollBar
         )
 
         val firstLineCons = springLayout.getConstraints(firstLine)
@@ -314,6 +344,8 @@ class DiagramToolWindow : ToolWindowFactory {
         progressBar.leftToLeft(sequenceDiagramPanel)
         openFolder.topToBottom(sequenceDiagramPanel)
         openFolder.leftToLeft(vinConfigPanel)
+        scrollBar.topToTop(sequenceDiagramPanel)
+        scrollBar.leftToRight(sequenceDiagramPanel)
     }
 
     private fun changeTime(newValue: Date) {
@@ -331,7 +363,7 @@ class DiagramToolWindow : ToolWindowFactory {
             val vinType = vinConfigMap[vin]
             val array = carConfigsMap[vinType?.get(0).toString()]
 
-            if (array!=null){
+            if (array != null) {
                 logTypeComboBox.model = DefaultComboBoxModel(array)
                 return
             }
@@ -347,9 +379,11 @@ class DiagramToolWindow : ToolWindowFactory {
                     object : TypeToken<BaseResp<VinConfig>>() {}.type
                 ) {
                     vinConfigMap[vin] = it?.data?.list?.firstOrNull()?.vehSeriesNo ?: "X"
-                    notifyText("发生一次异常此vin码 $vin 未找到对应车型 返回数据$it，但默认应用了X平台匹配规则")
+                    if (it?.data?.list?.firstOrNull() == null) {
+                        notifyText("发生一次异常此vin码 $vin 未找到对应车型 返回数据$it，但默认应用了X平台匹配规则")
+                    }
                     val vinType = vinConfigMap[vin]
-                    val array = carConfigsMap[vinType?.get(0).toString()]?: arrayOf()
+                    val array = carConfigsMap[vinType?.get(0).toString()] ?: arrayOf()
                     logTypeComboBox.model = DefaultComboBoxModel(array)
                 }
             }
@@ -443,7 +477,7 @@ class DiagramToolWindow : ToolWindowFactory {
         carConfigsMap["NONE"] = arrayOf()
     }
 
-    val timeHashMap = hashMapOf(
+    private val timeHashMap = hashMapOf(
         "半小时" to 30,
         "1小时" to 60,
         "2小时" to 60 * 2,

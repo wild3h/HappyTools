@@ -202,3 +202,18 @@ fun JXDatePicker.setFormatDate(format: String,time:String) {
     date = dateFormat.parse(time)
 }
 
+fun Boolean.ifTrue(onTrue:()->Unit):Boolean{
+    if (!this){
+        return false
+    }
+    onTrue()
+    return true
+}
+
+fun Boolean.ifFalse(onFalse:()->Unit):Boolean{
+    if (this){
+        return true
+    }
+    onFalse()
+    return false
+}
