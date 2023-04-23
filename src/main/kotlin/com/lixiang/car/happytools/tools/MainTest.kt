@@ -1,6 +1,5 @@
 package com.lixiang.car.happytools.tools
 
-import com.lixiang.car.happytools.tools.compose.ComposeTransform
 import kotlinparse.KotlinLexer
 import kotlinparse.KotlinParser
 import kotlinparse.KotlinParserBaseListener
@@ -8,6 +7,17 @@ import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.ParseTreeWalker
+import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
+import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
+import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer
+import org.jetbrains.kotlin.com.intellij.psi.PsiFile
+import org.jetbrains.kotlin.com.intellij.psi.PsiManager
+import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.config.JVMConfigurationKeys
+import org.jetbrains.kotlin.config.JvmTarget
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtVisitorVoid
 
 object MainTest {
     @JvmStatic
@@ -59,10 +69,26 @@ object MainTest {
         }
     }
 """.trimIndent()
-        parseCompose(code).forEach {
-            println(it)
-            println("_________")
-        }
+//        parseCompose(code).forEach {
+//            println(it)
+//            println("_________")
+//        }
+
+        // Get the syntax tree of the compiled code.
+//        val ktPsiFile = getKtPsiFile(code)
+//        val ast: PsiFile? = file.psiFile
+//        ast?.acceptChildren(object : KtVisitorVoid() {
+//            override fun visitNamedFunction(function: KtNamedFunction) {
+//                // Get the name of the function.
+//                val functionName = function.name
+//
+//                // Get the parameters of the function.
+//                val parameters = function.valueParameterList?.parameters
+//
+//                // Output the information.
+//                println("Function: $functionName, Parameters: $parameters")
+//            }
+//        })
     }
 
     private fun parseCompose(code: String): List<String> {

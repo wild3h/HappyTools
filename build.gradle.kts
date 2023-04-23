@@ -36,6 +36,8 @@ dependencies{
     implementation(files("lib/antlr-4.12.0-complete.jar"))
     implementation("com.sealwu.jsontokotlin:library:3.7.4")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
+    implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.8.20")
+    implementation("org.jetbrains.kotlin:kotlin-compiler:1.8.20")
 }
 
 tasks {

@@ -34,11 +34,8 @@ import kotlin.collections.HashMap
 import kotlin.math.abs
 
 
-class DiagramToolWindow : ToolWindowFactory {
+class DiagramToolWindow : BaseToolWindow() {
 
-    private val rootView by lazy {
-        JPanel()
-    }
     private val sequenceDiagramPanel by lazy {
         SequenceDiagramPanel()
     }
@@ -176,11 +173,7 @@ class DiagramToolWindow : ToolWindowFactory {
         }
     }
 
-    override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-        val contentFactory = ContentFactory.SERVICE.getInstance()
-        initRootView(project)
-        val content = contentFactory.createContent(rootView, "", false)
-        toolWindow.contentManager.addContent(content)
+    override fun initView(project: Project) {
         rootView.addComponentListener(object : ComponentListener {
             override fun componentResized(p0: ComponentEvent?) {
                 val newWidth = (p0?.component?.width ?: 0) - 50
@@ -204,9 +197,7 @@ class DiagramToolWindow : ToolWindowFactory {
 
 
         })
-    }
 
-    private fun initRootView(project: Project) {
         val run = JButton("Download").apply {
             this.addActionListener {
                 vinConfigPanel.text.let {
@@ -298,8 +289,8 @@ class DiagramToolWindow : ToolWindowFactory {
 //        }
         //sequenceDiagramPanel.attachScrollBar(scrollBar)
 //        sequenceDiagramPanel.diagramDelegate.addScrollListener { scrollTotal ->
-            //修改scrollBar的显示状态
-            //scrollBar.value = abs(scrollTotal/SCROLL_SIZE_PER)
+        //修改scrollBar的显示状态
+        //scrollBar.value = abs(scrollTotal/SCROLL_SIZE_PER)
 //        }
 //        scrollBar.addMouseWheelListener {
 //            val isScrollEvent = JBScrollPane.isScrollEvent(it)
@@ -345,6 +336,10 @@ class DiagramToolWindow : ToolWindowFactory {
         progressBar.leftToLeft(sequenceDiagramPanel)
         openFolder.topToBottom(sequenceDiagramPanel)
         openFolder.leftToLeft(vinConfigPanel)
+    }
+
+    override fun getDisplayName(): String {
+        return "Log Download"
     }
 
     private fun changeTime(newValue: Date) {
