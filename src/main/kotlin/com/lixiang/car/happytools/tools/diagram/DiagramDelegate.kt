@@ -1,5 +1,6 @@
 package com.lixiang.car.happytools.tools.diagram
 
+import com.intellij.ui.components.JBScrollBar
 import com.lixiang.car.happytools.tools.entity.SeqLifecycle
 import com.lixiang.car.happytools.tools.entity.SequenceDiagramElement
 import java.awt.Graphics
@@ -9,7 +10,7 @@ import java.awt.event.MouseWheelEvent
 abstract class DiagramDelegate {
 
     protected val scrollListener: ArrayList<(scrollTotal: Int) -> Unit> = arrayListOf()
-
+    protected var scrollBar :JBScrollBar? = null
     abstract fun repaint()
     abstract fun onMeasure(g: Graphics)
 
@@ -40,5 +41,9 @@ abstract class DiagramDelegate {
 
     fun addScrollListener(listener: (scrollTotal: Int) -> Unit) {
         scrollListener.add(listener)
+    }
+
+    fun addScrollBar(scrollBar: JBScrollBar){
+        this.scrollBar = scrollBar
     }
 }

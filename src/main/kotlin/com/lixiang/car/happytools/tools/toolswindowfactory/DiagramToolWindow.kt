@@ -10,6 +10,7 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.content.ContentFactory
 import com.intellij.util.containers.toArray
+import com.lixiang.car.happytools.tools.constants.DiagramConstants.SCROLL_SIZE_PER
 import com.lixiang.car.happytools.tools.data.*
 import com.lixiang.car.happytools.tools.util.*
 import com.lixiang.car.happytools.tools.view.DateSelectorView
@@ -182,7 +183,7 @@ class DiagramToolWindow : ToolWindowFactory {
         toolWindow.contentManager.addContent(content)
         rootView.addComponentListener(object : ComponentListener {
             override fun componentResized(p0: ComponentEvent?) {
-                val newWidth = (p0?.component?.width ?: 0) - 100
+                val newWidth = (p0?.component?.width ?: 0) - 50
                 val newHeight = (p0?.component?.height ?: 0) - sequenceDiagramPanel.y - 50
                 sequenceDiagramPanel.preferredSize = Dimension(newWidth, newHeight)
                 SequenceDiagramPanel.MAX_WIDTH = newWidth
@@ -288,24 +289,25 @@ class DiagramToolWindow : ToolWindowFactory {
             add(logTypeTitle)
             add(logTypeComboBox)
         }
-        val boundedRangeModel = DefaultBoundedRangeModel(0, 10, 0, 100)
-        scrollBar.model = boundedRangeModel
-        var lastScrollBarValue = scrollBar.value
-        scrollBar.addAdjustmentListener {
-            sequenceDiagramPanel.diagramDelegate.onScrolling(it.value - lastScrollBarValue)
-            lastScrollBarValue = it.value
-        }
-        sequenceDiagramPanel.diagramDelegate.addScrollListener { scrollTotal ->
+//        val boundedRangeModel = DefaultBoundedRangeModel(0, 10, 0, 10)
+//        scrollBar.model = boundedRangeModel
+//        var lastScrollBarValue = scrollBar.value
+//        scrollBar.addAdjustmentListener {
+//            sequenceDiagramPanel.diagramDelegate.onScrolling(it.value - lastScrollBarValue)
+//            lastScrollBarValue = it.value
+//        }
+        //sequenceDiagramPanel.attachScrollBar(scrollBar)
+//        sequenceDiagramPanel.diagramDelegate.addScrollListener { scrollTotal ->
             //修改scrollBar的显示状态
-            //scrollBar.value = abs(scrollTotal)
-        }
-        scrollBar.addMouseWheelListener {
-            val isScrollEvent = JBScrollPane.isScrollEvent(it)
-            val isFromSeqPanel = it.source is JBScrollBar
-            if (isScrollEvent && isFromSeqPanel) {
-                sequenceDiagramPanel.diagramDelegate.onScrolling(it.preciseWheelRotation.toInt())
-            }
-        }
+            //scrollBar.value = abs(scrollTotal/SCROLL_SIZE_PER)
+//        }
+//        scrollBar.addMouseWheelListener {
+//            val isScrollEvent = JBScrollPane.isScrollEvent(it)
+//            val isFromSeqPanel = it.source is JBScrollBar
+//            if (isScrollEvent && isFromSeqPanel) {
+//                sequenceDiagramPanel.diagramDelegate.onScrolling(it.preciseWheelRotation.toInt())
+//            }
+//        }
         rootView.add(
             firstLine,
             sequenceDiagramPanel,
@@ -317,8 +319,7 @@ class DiagramToolWindow : ToolWindowFactory {
 
             wordsLine,
             progressBar,
-            openFolder,
-            scrollBar
+            openFolder
         )
 
         val firstLineCons = springLayout.getConstraints(firstLine)
@@ -344,8 +345,6 @@ class DiagramToolWindow : ToolWindowFactory {
         progressBar.leftToLeft(sequenceDiagramPanel)
         openFolder.topToBottom(sequenceDiagramPanel)
         openFolder.leftToLeft(vinConfigPanel)
-        scrollBar.topToTop(sequenceDiagramPanel)
-        scrollBar.leftToRight(sequenceDiagramPanel)
     }
 
     private fun changeTime(newValue: Date) {

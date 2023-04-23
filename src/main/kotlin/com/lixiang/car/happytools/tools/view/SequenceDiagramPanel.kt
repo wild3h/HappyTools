@@ -2,6 +2,7 @@ package com.lixiang.car.happytools.tools.view
 
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
+import com.intellij.ui.components.JBScrollBar
 import com.intellij.ui.components.JBScrollPane
 import com.lixiang.car.happytools.tools.constants.DiagramConstants
 import com.lixiang.car.happytools.tools.constants.DiagramConstants.OPERATION_HEIGHT
@@ -77,13 +78,16 @@ class SequenceDiagramPanel : JPanel() {
     public override fun paintComponent(g: Graphics) {
         var lastTime = System.currentTimeMillis()
         super.paintComponent(g)
-        diagramDelegate?.repaint()
         diagramDelegate.onMeasure(g)
         diagramDelegate.onDraw(g)
 
 
         //println("paintComponent ${System.currentTimeMillis() - lastTime}")
 //        drawAtLast(g)
+    }
+
+    fun resetSize() {
+        diagramDelegate.repaint()
     }
 
 
@@ -108,6 +112,10 @@ class SequenceDiagramPanel : JPanel() {
 
     override fun getPreferredSize(): Dimension {
         return Dimension(MAX_WIDTH, MAX_HEIGHT)
+    }
+
+    fun attachScrollBar(scrollBar: JBScrollBar) {
+        diagramDelegate.addScrollBar(scrollBar)
     }
 }
 

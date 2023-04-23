@@ -21,6 +21,7 @@ import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
+import javax.swing.DefaultBoundedRangeModel
 import kotlin.math.abs
 
 class CustomDelegate(private val mParent: SequenceDiagramPanel) : DiagramDelegate() {
@@ -80,6 +81,10 @@ class CustomDelegate(private val mParent: SequenceDiagramPanel) : DiagramDelegat
                     SEQ_HEIGHT + OPERATION_SPLIT_Y + operationHeight * selectedElements.size + SequenceDiagramPanel.DRAW_START_Y + stringHeight + OPERATION_PADDING_VERTICAL * 2 + OPERATION_SPLIT_Y
                 maxScrollNum = (canvasHeight - mParent.height) / SCROLL_SIZE_PER
                 println(maxScrollNum)
+                if (maxScrollNum>=10){
+                    val boundedRangeModel = DefaultBoundedRangeModel(0, 10, 0, maxScrollNum)
+                    scrollBar?.model = boundedRangeModel
+                }
             }
 
             override fun componentMoved(p0: ComponentEvent?) {
@@ -95,8 +100,10 @@ class CustomDelegate(private val mParent: SequenceDiagramPanel) : DiagramDelegat
     }
 
     override fun repaint() {
-//        movedXTotal = 0
-//        movedYTotal = 0
+        movedXTotal = 0
+        movedYTotal = 0
+        drawXStart = SequenceDiagramPanel.DRAW_START_X
+        drawYStart = SequenceDiagramPanel.DRAW_START_Y
     }
 
     override fun onMeasure(g: Graphics) {
@@ -265,7 +272,6 @@ class CustomDelegate(private val mParent: SequenceDiagramPanel) : DiagramDelegat
             movedXTotal = (movedXTotal + moveX).coerceAtMost(0)
             drawXStart = (drawXStart + moveX).coerceAtMost(SequenceDiagramPanel.DRAW_START_X)
             drawYStart = (drawYStart + moveY).coerceAtMost(SequenceDiagramPanel.DRAW_START_Y).coerceAtLeast(SequenceDiagramPanel.DRAW_START_Y - abs(maxMoveY))
-            println("~~~~" + drawYStart)
             mParent.repaint()
             lastClickX = currentX
             lastClickY = currentY
@@ -306,7 +312,6 @@ class CustomDelegate(private val mParent: SequenceDiagramPanel) : DiagramDelegat
         val canvasHeight =
             SEQ_HEIGHT + OPERATION_SPLIT_Y + operationHeight * selectedElements.size + SequenceDiagramPanel.DRAW_START_Y + stringHeight + OPERATION_PADDING_VERTICAL * 2 + OPERATION_SPLIT_Y
         maxScrollNum = (canvasHeight - mParent.height) / SCROLL_SIZE_PER
-        println(maxScrollNum)
         mParent.repaint()
     }
 
@@ -341,7 +346,6 @@ class CustomDelegate(private val mParent: SequenceDiagramPanel) : DiagramDelegat
         scrollNumber = (scrollNumber + changeValue).coerceAtLeast(0).coerceAtMost(maxScrollNum)
         movedYTotal = (movedYTotal + (-changeValue) * SCROLL_SIZE_PER).coerceAtMost(0).coerceAtLeast(-abs(maxMoveY))
         drawYStart = (drawYStart + (-changeValue) * SCROLL_SIZE_PER).coerceAtMost(SequenceDiagramPanel.DRAW_START_Y).coerceAtLeast(SequenceDiagramPanel.DRAW_START_Y - abs(maxMoveY))
-        println(drawYStart)
         mParent.repaint()
     }
 
