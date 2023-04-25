@@ -27,6 +27,8 @@
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow factoryClass="com.lixiang.car.happytools.tools.toolswindowfactory.DiagramToolWindow"
                     id="HappyTools" anchor="right" secondary="false"/>
+        <toolWindow factoryClass="com.lixiang.car.happytools.tools.toolswindowfactory.ComposeParseToolWindow"
+                    id="Compose Transfer" anchor="bottom" secondary="false"/>
     </extensions>
 
     <actions>
