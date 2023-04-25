@@ -201,4 +201,58 @@ object DownloadManager {
             return ""
         }
     }
+
+    //分析日志
+    fun analysisLog(fileList: List<String>, keyWords: List<String>, onSuccess: (listData: ArrayList<SequenceDiagramElement>) -> Unit, onProgress: ((Int) -> Unit)? = null) {
+        try {
+            GlobalScope.launch {
+                val listData = withContext(Dispatchers.IO) {
+                    val listData: ArrayList<SequenceDiagramElement> = arrayListOf()
+                    fileList.forEachIndexed { index, logFile ->
+                        val br = BufferedReader(FileReader(logFile))
+                        var line: String? = null
+                        while (br.readLine()?.also {
+                                line = it
+                            } != null) {
+                            keyWords.forEach { keyWord ->
+                                if (keyWord.isBlank()) {
+                                    return@forEach
+                                }
+                                val lineStr = line.toString()
+                                if (lineStr.contains(keyWord)) {
+                                    val pattern = Regex("\\d{4}-\\d{2}-\\d{2}\\ \\d{2}:\\d{2}:\\d{2}.\\d{3}")
+                                    val matches = pattern.findAll(lineStr).map { it.value }.toList()
+                                    matches.firstOrNull()?.let { time ->
+                                        val timePattern = "yyyy-MM-dd HH:mm:ss.SSS"
+                                        val dateFormat = SimpleDateFormat(timePattern)
+                                        val date = dateFormat.parse(time)
+                                        val timestamp = date?.time ?: 0
+                                        val charAt = lineStr.indexOf(':', 38)
+                                        listData.add(
+                                            SequenceDiagramElement(
+                                                timestamp,
+                                                time,
+                                                lineStr.substring(24, 30),
+                                                lineStr.substring(30, 36),
+                                                lineStr.substring(38, charAt.coerceAtLeast(38)),
+                                                lineStr.substring(charAt.coerceAtLeast(38) + 1), lineStr)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        br.close()
+                        withContext(Dispatchers.Default) {
+                            onProgress?.invoke(((index + 1) * 100) / fileList.size)
+                        }
+                    }
+                    return@withContext listData
+                }
+                onSuccess(listData)
+            }
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            NotifyUtil.notifyMessage(ex.stackTraceToString())
+        }
+    }
 }

@@ -2,21 +2,13 @@ package com.lixiang.car.happytools.tools.toolswindowfactory
 
 import com.google.gson.reflect.TypeToken
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.ToolWindow
-import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollBar
-import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextField
-import com.intellij.ui.content.ContentFactory
 import com.intellij.util.containers.toArray
-import com.lixiang.car.happytools.tools.constants.DiagramConstants.SCROLL_SIZE_PER
 import com.lixiang.car.happytools.tools.data.*
 import com.lixiang.car.happytools.tools.util.*
-import com.lixiang.car.happytools.tools.view.DateSelectorView
-import com.lixiang.car.happytools.tools.view.MultiComboBox
-import com.lixiang.car.happytools.tools.view.SequenceDiagramPanel
-import com.lixiang.car.happytools.tools.view.ToolTextField
+import com.lixiang.car.happytools.tools.view.*
 import kotlinx.coroutines.*
 import org.jdesktop.swingx.JXComboBox
 import wu.seal.jsontokotlin.ui.jHorizontalLinearLayout
@@ -31,7 +23,6 @@ import javax.swing.*
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import kotlin.collections.HashMap
-import kotlin.math.abs
 
 
 class DiagramToolWindow : BaseToolWindow() {
@@ -173,6 +164,22 @@ class DiagramToolWindow : BaseToolWindow() {
         }
     }
 
+    private val fileDrop by lazy {
+        FileDropView({
+            return@FileDropView wordsTextArea.text.split(',')
+        }, onSuccess = { res ->
+            progressBar.isVisible = false
+            sequenceDiagramPanel.setElements(res)
+            lifecycleSelector.setValues(arrayListOf<String>().apply {
+                add("全选")
+                addAll(sequenceDiagramPanel.diagramDelegate.getDrawLifecycles().map { it.element.className })
+            }.toTypedArray())
+        }, onProgress = {
+            progressBar.isVisible = true
+            progressBar.value = it
+        })
+    }
+
     override fun initView(project: Project) {
         rootView.addComponentListener(object : ComponentListener {
             override fun componentResized(p0: ComponentEvent?) {
@@ -299,18 +306,24 @@ class DiagramToolWindow : BaseToolWindow() {
 //                sequenceDiagramPanel.diagramDelegate.onScrolling(it.preciseWheelRotation.toInt())
 //            }
 //        }
+        val runLine by lazy {
+            jHorizontalLinearLayout {
+                add(run)
+                add(lifecycleSelector)
+                add(fileDrop)
+            }
+        }
         rootView.add(
             firstLine,
             sequenceDiagramPanel,
-            run,
-            lifecycleSelector,
 
             timeLine,
             defaultDownloadLine,
 
             wordsLine,
             progressBar,
-            openFolder
+            openFolder,
+            runLine
         )
 
         val firstLineCons = springLayout.getConstraints(firstLine)
@@ -325,12 +338,10 @@ class DiagramToolWindow : BaseToolWindow() {
         wordsLine.topToBottom(timeLine)
         wordsLine.leftToLeft(timeLine)
 
-        run.topToBottom(wordsLine)
-        run.leftToLeft(firstLine)
-        lifecycleSelector.leftToRight(run, 5)
-        lifecycleSelector.topToTop(run)
+        runLine.topToBottom(wordsLine)
+        runLine.leftToLeft(wordsLine)
 
-        sequenceDiagramPanel.topToBottom(run, 20)
+        sequenceDiagramPanel.topToBottom(runLine, 20)
         sequenceDiagramPanel.leftToLeft(firstLine)
         progressBar.bottomToTop(sequenceDiagramPanel)
         progressBar.leftToLeft(sequenceDiagramPanel)
