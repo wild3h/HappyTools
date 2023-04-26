@@ -38,6 +38,8 @@ dependencies{
     implementation("com.sealwu.jsontokotlin:library:3.7.4")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
     implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:${kotlinVersion}")
+    implementation("com.github.cretz.kastree:kastree-ast-psi:0.4.0")
+    implementation("com.github.cretz.kastree:kastree-ast-common:0.4.0")
 //    implementation("org.jetbrains.kotlin:kotlin-compiler:1.8.20")
 }
 

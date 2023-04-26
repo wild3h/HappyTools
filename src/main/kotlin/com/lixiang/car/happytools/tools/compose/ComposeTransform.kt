@@ -1,91 +1,89 @@
 package com.lixiang.car.happytools.tools.compose
 
-import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.project.impl.ProjectImpl
-import com.lixiang.car.happytools.tools.util.FileUtils
-import org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback
+import kastree.ast.Node
+import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
+import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
+import org.jetbrains.kotlin.cli.common.messages.PrintingMessageCollector
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
-import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment.Companion.createForProduction
-import org.jetbrains.kotlin.com.intellij.lang.impl.PsiBuilderImpl
+import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.com.intellij.psi.PsiFileFactory
+import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer
 import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.parsing.KotlinParserDefinition
-import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.config.JVMConfigurationKeys
+import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtFunctionType
-import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.KtParameter
-import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.psi.KtValueArgument
-import org.jetbrains.kotlin.psi.KtValueArgumentList
-import org.jetbrains.kotlin.psi.KtVisitorVoid
-import java.io.File
-import java.io.FileInputStream
-import java.io.IOException
 
 
 object ComposeTransform {
-    fun parseKotlinToPsi(code: String): KtFile? {
+
+    private var classList: ArrayList<String> = arrayListOf()
+    private var methodList: ArrayList<String> = arrayListOf()
+    private var proj: Project
+
+    init {
+        val configuration = CompilerConfiguration()
+        configuration.put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, PrintingMessageCollector(System.out, MessageRenderer.PLAIN_FULL_PATHS, true))
+        configuration.put(JVMConfigurationKeys.JVM_TARGET, JvmTarget.JVM_1_8)
+        proj = KotlinCoreEnvironment.createForProduction(Disposer.newDisposable(),
+            configuration,
+            EnvironmentConfigFiles.JVM_CONFIG_FILES).project
+
+    }
+
+    fun parseKotlinToPsi(code: String): ArrayList<String> {
         // look https://github.com/maldinixiang/ktvisitor-kastree.git
-        try {
-            val environment = createForProduction({}, CompilerConfiguration(), EnvironmentConfigFiles.JVM_CONFIG_FILES)
-            val file = PsiFileFactory.getInstance(environment.project).createFileFromText(FileUtils.defaultFileFolder() + "Test.kt", KotlinLanguage.INSTANCE, code) as KtFile
-            setIdeaIoUseFallback()
-            val project = environment.project
-
-            val builder = PsiBuilderImpl(project,KotlinParserDefinition(),KotlinParserDefinition().createLexer(project), code)
-            builder.setDebugMode(true)
-
-            val file = KotlinParserDefinition().createFile(builder)
-            builder.eof()
-
-            val errorCount = builder.errorsCount
-            if (errorCount != 0) {
-                builder.getStatisticsInfo()?.entries?.forEach {
-                    println(it)
+        // https://github.com/cretz/kastree
+        val classParser = Parser()
+        val classFile = classParser.parseFile(code)
+        classFile.decls.forEach {
+            when (it) {
+                is Node.Decl.Structured -> {
+                    getFunInfo(it)
                 }
-                println("Number of syntax errors found: $errorCount\n")
-                for (error in builder.javaFileCharSequence.languageDialect.getSyntaxErrors(builder.originalText, errorCount)) {
-                    println("Line ${error.line}: ${error.description}")
+                is Node.Decl.Func -> {
+                    it.name?.let { funName -> methodList.add(funName) }
                 }
-            } else {
-                file.acceptChildren(object : MyVisitor() {})
+
+                else -> {}
             }
-
-            file.acceptChildren(object : KtVisitorVoid() {
-
-                //                override fun visitElement(element: PsiElement) {
-//                    super.visitElement(element)
-//                    println("${element.javaClass.simpleName}: ${element.text}")
-//                }
-//
-                override fun visitCallExpression(expression: KtCallExpression) {
-                    super.visitCallExpression(expression)
-                    println(expression.text)
-                }
-
-                override fun visitParameter(parameter: KtParameter) {
-                    super.visitParameter(parameter)
-                    println(parameter.text)
-                }
-                override fun visitNamedFunction(function: KtNamedFunction) {
-                    // Get the name of the function.
-                    val functionName = function.name
-
-                    // Get the parameters of the function.
-                    val parameters = function.valueParameterList?.parameters
-
-                    // Output the information.
-                    println("Function: $functionName, Parameters: $parameters")
-                }
-            })
-        } catch (e: IOException) {
-            e.printStackTrace()
         }
-        return null
+        return methodList
+    }
+
+    private fun getFunInfo(structured: Node.Decl.Structured) {
+        structured.members.forEach {
+            when (it) {
+                is Node.Decl.Structured -> {
+                    getFunInfo(it)
+                }
+                is Node.Decl.Func -> {
+                    println(it.name)
+                    val body = it.body
+                    if (body is Node.Decl.Func.Body.Block){
+                        body.block.stmts.forEach {expr->
+                            if (expr is Node.Stmt.Expr){
+                                val call  = expr.expr
+                                if (call is Node.Expr.Call){
+                                    val callName = call.expr
+                                    if (callName is Node.Expr.Name){
+                                        println("控件类型${callName.name}")
+                                    }
+                                    val valueArgs = call.args
+                                    valueArgs.forEach { valueArg->
+                                        println("参数${valueArg.name}")
+                                        val expr = valueArg.expr
+                                        if (expr is Node.Expr.BinaryOp){
+                                            println("数值${expr}")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                else -> {}
+            }
+        }
     }
 }
