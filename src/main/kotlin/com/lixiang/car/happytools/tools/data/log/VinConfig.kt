@@ -1,4 +1,4 @@
-package com.lixiang.car.happytools.tools.data
+package com.lixiang.car.happytools.tools.data.log
 
 data class VinConfig(
     var vehSeriesNo: String = "",

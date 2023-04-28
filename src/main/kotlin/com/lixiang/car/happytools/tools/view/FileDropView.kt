@@ -1,7 +1,7 @@
 package com.lixiang.car.happytools.tools.view
 
 import com.intellij.ui.components.JBLabel
-import com.lixiang.car.happytools.tools.data.DownloadManager
+import com.lixiang.car.happytools.tools.data.log.DownloadManager
 import com.lixiang.car.happytools.tools.entity.SequenceDiagramElement
 import java.awt.Dimension
 import java.awt.Graphics

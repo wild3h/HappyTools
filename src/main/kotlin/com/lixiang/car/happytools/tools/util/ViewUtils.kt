@@ -1,5 +1,6 @@
 package com.lixiang.car.happytools.tools.util
 
+import com.google.gson.Gson
 import com.intellij.json.JsonFileType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Document
@@ -7,6 +8,8 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.fileTypes.FileType
+import com.lixiang.car.happytools.tools.data.compose.BaseJson
+import com.lixiang.car.happytools.tools.data.compose.JsonHashMap
 import org.jdesktop.swingx.JXDatePicker
 import java.awt.Component
 import java.awt.Container
@@ -197,23 +200,34 @@ fun JXDatePicker.getFormatDate(format: String): String {
     return dateFormat.format(date)
 }
 
-fun JXDatePicker.setFormatDate(format: String,time:String) {
+fun JXDatePicker.setFormatDate(format: String, time: String) {
     val dateFormat = SimpleDateFormat(format)
     date = dateFormat.parse(time)
 }
 
-fun Boolean.ifTrue(onTrue:()->Unit):Boolean{
-    if (!this){
+fun Boolean.ifTrue(onTrue: () -> Unit): Boolean {
+    if (!this) {
         return false
     }
     onTrue()
     return true
 }
 
-fun Boolean.ifFalse(onFalse:()->Unit):Boolean{
-    if (this){
+fun Boolean.ifFalse(onFalse: () -> Unit): Boolean {
+    if (this) {
         return true
     }
     onFalse()
     return false
+}
+
+fun Any.toJsonStr(): String {
+    if (this is String) {
+        return "\"$this\""
+    } else if ((this is Int) or (this is Long) or (this is Double) or (this is Float)) {
+        return "$this"
+    } else if (this is BaseJson) {
+        return this.toJson()
+    }
+    return Gson().toJson(this)
 }

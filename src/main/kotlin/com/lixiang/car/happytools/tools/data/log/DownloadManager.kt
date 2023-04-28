@@ -1,4 +1,4 @@
-package com.lixiang.car.happytools.tools.data
+package com.lixiang.car.happytools.tools.data.log
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken

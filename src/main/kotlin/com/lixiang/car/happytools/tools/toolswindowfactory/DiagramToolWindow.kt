@@ -6,7 +6,10 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollBar
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.containers.toArray
-import com.lixiang.car.happytools.tools.data.*
+import com.lixiang.car.happytools.tools.data.log.BaseResp
+import com.lixiang.car.happytools.tools.data.log.DownloadManager
+import com.lixiang.car.happytools.tools.data.log.LogConfigBeans
+import com.lixiang.car.happytools.tools.data.log.VinConfig
 import com.lixiang.car.happytools.tools.util.*
 import com.lixiang.car.happytools.tools.view.*
 import kotlinx.coroutines.*
