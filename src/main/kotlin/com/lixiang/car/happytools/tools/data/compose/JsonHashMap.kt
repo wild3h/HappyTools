@@ -4,7 +4,11 @@ import com.lixiang.car.happytools.tools.util.toJsonStr
 
 class JsonHashMap : BaseJson() {
 
-    override val params = hashMapOf<String, Any>()
+    override val params = linkedMapOf<String, Any>()
+
+    fun getPrams():LinkedHashMap<String, Any>{
+        return params
+    }
     override fun toJson(): String {
         val res = StringBuilder()
         val paramsSize = params.size

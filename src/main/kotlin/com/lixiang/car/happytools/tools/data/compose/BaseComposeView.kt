@@ -6,10 +6,18 @@ open class BaseComposeView : BaseJson() {
     var modifier: Modifier? = null
     override val params = JsonHashMap()
 
+    operator fun set(key: String, value: Any) {
+        when(key){
+            "" -> {}
+            "modifier" -> modifier = value as Modifier
+            else -> params[key] = value
+        }
+    }
+
     override fun toString(): String {
         return """
             {
-                    "componentName": ${this.javaClass.simpleName},
+                    "componentName": ${this.javaClass.simpleName.substring(2)},
                     "componentId": "*component_id"
                     ${
 
@@ -21,7 +29,7 @@ open class BaseComposeView : BaseJson() {
         }
                     
                     ${
-            if (params.params.isNotEmpty()) {
+            if (params.getPrams().isNotEmpty()) {
                 ",${
                     params.toJson().let {
                         it.substring(1, it.length - 1)

@@ -9,6 +9,7 @@ class BaseMineActivity{
             modifier = Modifier
                 .width(140.dp)
                 .height(140.dp)
+                .padding(start = 6.dp, end = 6.dp, top = 6.dp, bottom = 6.dp)
                 .clickable {
                     CommonLogUtils.i("test", "clickable")
                     mViewModel.switchEditMode(true)

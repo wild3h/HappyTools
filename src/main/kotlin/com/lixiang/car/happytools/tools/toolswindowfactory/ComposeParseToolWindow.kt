@@ -61,9 +61,7 @@ class ComposeParseToolWindow : BaseToolWindow() {
             override fun documentChanged(event: com.intellij.openapi.editor.event.DocumentEvent) {
                 super.documentChanged(event)
                 println("___________________________")
-                ComposeTransform.parseKotlinToPsi(composeInputEditor.document.text).forEach {
-                    println(it)
-                }
+                ComposeTransform.parseKotlinToPsi(composeInputEditor.document.text,legoResEditor)
             }
         })
     }

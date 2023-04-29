@@ -34,6 +34,36 @@ class Modifier: BaseJson()  {
         return this
     }
 
+    fun putFillMaxSize(value:Float): Modifier {
+        params["fillMaxSize"] = value
+        return this
+    }
+
+    fun putFillMaxWidth(value:Float): Modifier {
+        params["fillMaxWidth"] = value
+        return this
+    }
+
+    fun putFillMaxHeight(value:Float): Modifier {
+        params["fillMaxHeight"] = value
+        return this
+    }
+
+    fun putRequiredWidth(value:Int): Modifier {
+        params["requiredWidth"] = value
+        return this
+    }
+
+    fun putRequiredHeight(value:Int): Modifier {
+        params["requiredHeight"] = value
+        return this
+    }
+
+    fun putAlpha(value:Float): Modifier {
+        params["alpha"] = value
+        return this
+    }
+
     override fun toJson(): String {
         return """
             ${params.toJsonStr()}

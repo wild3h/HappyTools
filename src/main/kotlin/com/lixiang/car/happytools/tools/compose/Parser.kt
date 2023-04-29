@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
 open class Parser(val converter: Converter = Converter) {
-    private lateinit var proj: Project
+    private var proj: Project
 
     init {
         val configuration = CompilerConfiguration()

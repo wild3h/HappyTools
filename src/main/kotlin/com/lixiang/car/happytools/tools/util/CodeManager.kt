@@ -9,7 +9,9 @@ import java.io.File
 import java.util.*
 
 object CodeManager {
-    @Deprecated("")
+    @Deprecated("use openCode and input fileName",
+        ReplaceWith("openCode(project, text, fileName)", "com.lixiang.car.happytools.tools.util.CodeManager.openCode")
+    )
     fun openCode(project: Project?, text: String?) {
         openCode(project, text, "json-res-" + UUID.randomUUID() + ".json")
     }
