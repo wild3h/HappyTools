@@ -68,7 +68,7 @@ class FileDropView(val getKeyWords: () -> List<String>, onSuccess: (listData: Ar
 
     override fun paintComponent(g: Graphics?) {
         super.paintComponent(g)
-        g?.drawRoundRect(0, 0, width, height, 10, 10)
+        g?.drawRoundRect(0, 0, width-1, height-1, 10, 10)
     }
 
     override fun getPreferredSize(): Dimension {

@@ -249,13 +249,13 @@ class DiagramToolWindow : BaseToolWindow() {
         }
         val springLayout = SpringLayout()
         rootView.layout = springLayout
-        val vinTitle = JBLabel("VIN").apply {
+        val vinTitle = JBLabel("*VIN").apply {
             preferredSize = Dimension(40, 30)
         }
-        val startTitle = JBLabel("开始时间：").apply {
+        val startTitle = JBLabel("*开始时间：").apply {
             minimumSize = Dimension(60, 30)
         }
-        val endTitle = JBLabel("  结束时间：").apply {
+        val endTitle = JBLabel("  *结束时间：").apply {
             minimumSize = Dimension(60, 30)
         }
         occurrenceTimePicker.addPropertyChangeListener("date") {
@@ -281,8 +281,8 @@ class DiagramToolWindow : BaseToolWindow() {
             add(endTitle)
             add(endJXDatePicker)
         }
-        val logTypeTitle = JBLabel("  业务类型：").apply {
-            preferredSize = Dimension(80, 30)
+        val logTypeTitle = JBLabel("  *业务类型：").apply {
+            minimumSize = Dimension(80, 30)
         }
         val firstLine = jHorizontalLinearLayout {
             add(vinTitle)

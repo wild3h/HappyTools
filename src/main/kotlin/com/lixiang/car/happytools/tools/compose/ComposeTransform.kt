@@ -3,10 +3,7 @@ package com.lixiang.car.happytools.tools.compose
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.wm.ToolWindowManager
-import com.lixiang.car.happytools.tools.data.compose.BaseComposeView
-import com.lixiang.car.happytools.tools.data.compose.CPImage
-import com.lixiang.car.happytools.tools.data.compose.CPText
-import com.lixiang.car.happytools.tools.data.compose.Modifier
+import com.lixiang.car.happytools.tools.data.compose.*
 import com.lixiang.car.happytools.tools.util.setTextWrite
 import kastree.ast.Node
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
@@ -28,6 +25,7 @@ object ComposeTransform {
     private var methodList: ArrayList<String> = arrayListOf()
     private var proj: Project
     private lateinit var editor: Editor
+
     init {
         val configuration = CompilerConfiguration()
         configuration.put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, PrintingMessageCollector(System.out, MessageRenderer.PLAIN_FULL_PATHS, true))
@@ -40,7 +38,7 @@ object ComposeTransform {
 
     }
 
-    fun parseKotlinToPsi(code: String,editor:Editor) {
+    fun parseKotlinToPsi(code: String, editor: Editor) {
         this.editor = editor
         // look https://github.com/maldinixiang/ktvisitor-kastree.git
         // https://github.com/cretz/kastree
@@ -96,11 +94,39 @@ object ComposeTransform {
                         "Image" -> {
                             CPImage()
                         }
-
                         "Text" -> {
                             CPText()
                         }
-
+                        "Box" -> {
+                            CPBox()
+                        }
+                        "CircularProgressIndicator"->{
+                            CPCircularProgressIndicator()
+                        }
+                        "Column" -> {
+                            CPColumn()
+                        }
+                        "Divider" -> {
+                            CPDivider()
+                        }
+                        "Grid" -> {
+                            CPGrid()
+                        }
+                        "LazyColumn"->{
+                            CPLazyColumn()
+                        }
+                        "LazyRow"->{
+                            CPLazyRow()
+                        }
+                        "LinearProgressIndicator" -> {
+                            CPLinearProgressIndicator()
+                        }
+                        "Spacer" -> {
+                            CPSpacer()
+                        }
+                        "Row" -> {
+                            CPRow()
+                        }
                         else -> {
                             null
                         }
@@ -195,17 +221,120 @@ object ComposeTransform {
                 val name = (it.expr as Node.Expr.Name).name
                 val args = it.args
                 when (name) {
-                    "width", "height" -> {
+                    "width", "height","requiredWidth", "requiredHeight" -> {
+                        //width=100.dp
                         args.forEach { arg ->
-                            if (arg.expr is Node.Expr.BinaryOp) {
-                                val binaryOp = arg.expr as Node.Expr.BinaryOp
-                                val const = binaryOp.lhs
-                                if (const is Node.Expr.Const) {
-                                    val value = const.value.toDouble().toInt()
+                            val expr = arg.expr
+                            when (expr) {
+                                is Node.Expr.Const -> {
+                                    val value = expr.value.replace(" ", "").toDouble().toInt()
                                     modifier.put(name to value)
+                                }
+
+                                is Node.Expr.BinaryOp -> {
+                                    val binaryOp = expr
+                                    val const = binaryOp.lhs
+                                    if (const is Node.Expr.Const) {
+                                        val value = const.value.replace(" ", "").toDouble().toInt()
+                                        modifier.put(name to value)
+                                    }
+                                }
+
+                                else -> {}
+                            }
+                        }
+                    }
+
+                    "fillMaxWidth", "fillMaxHeight", "fillMaxSize" -> {
+                        modifier.put(name to "1.0")
+                    }
+                    "alpha" -> {
+                        args.forEach { arg ->
+                            val expr = arg.expr
+                            when (expr) {
+                                is Node.Expr.Const -> {
+                                    val value = expr.value.replace(" ", "").toDouble()
+                                    modifier.put(name to value)
+                                }
+
+                                is Node.Expr.BinaryOp -> {
+                                    val binaryOp = dfsBinaryOp(expr)?:""
+                                    modifier.put(name to binaryOp)
+                                }
+
+                                else -> {}
+                            }
+                        }
+                    }
+
+                    "padding" -> {
+                        val padding = Padding()
+                        if (args.size == 1) {
+                            val arg = args.first()
+                            if (arg.name == null) {
+                                val expr = arg.expr
+                                when (expr) {
+                                    is Node.Expr.Const -> {
+                                        val value = expr.value.replace(" ", "").toDouble().toInt()
+                                        padding.putAll(value)
+                                    }
+
+                                    is Node.Expr.BinaryOp -> {
+                                        val binaryOp = expr
+                                        val const = binaryOp.lhs
+                                        if (const is Node.Expr.Const) {
+                                            val value = const.value.replace(" ", "").toDouble().toInt()
+                                            padding.putAll(value)
+                                        }
+                                    }
+
+                                    else -> {}
+                                }
+                            } else {
+                                val name = arg.name ?: "default"
+                                val expr = arg.expr
+                                when (expr) {
+                                    is Node.Expr.Const -> {
+                                        val value = expr.value.replace(" ", "").toDouble().toInt()
+                                        padding.put(name to value)
+                                    }
+
+                                    is Node.Expr.BinaryOp -> {
+                                        val binaryOp = expr
+                                        val const = binaryOp.lhs
+                                        if (const is Node.Expr.Const) {
+                                            val value = const.value.replace(" ", "").toDouble().toInt()
+                                            padding.put(name to value)
+                                        }
+                                    }
+
+                                    else -> {}
+                                }
+                            }
+                        } else {
+                            args.forEach { arg ->
+                                val argName = arg.name ?: "default"
+                                val expr = arg.expr
+                                when (expr) {
+                                    is Node.Expr.Const -> {
+                                        val value = expr.value.replace(" ", "").toDouble().toInt()
+                                        padding.put(argName to value)
+                                    }
+
+                                    is Node.Expr.BinaryOp -> {
+                                        val binaryOp = expr
+                                        val const = binaryOp.lhs
+                                        if (const is Node.Expr.Const) {
+                                            val value = const.value.replace(" ", "").toDouble().toInt()
+                                            padding.put(argName to value)
+                                        }
+                                    }
+
+                                    else -> {}
                                 }
                             }
                         }
+                        modifier.put(name to padding)
                     }
 
                     else -> {
@@ -243,6 +372,11 @@ object ComposeTransform {
                                         else -> {
                                         }
                                     }
+                                }
+
+                                is Node.Expr.BinaryOp -> {
+                                    val binaryOp = dfsBinaryOp(expr)?:""
+                                    modifier.put(name to binaryOp)
                                 }
 
                                 else -> {
@@ -290,6 +424,10 @@ object ComposeTransform {
 
                 is Node.Expr.Name -> {
                     it.name
+                }
+
+                is Node.Expr.Const -> {
+                    it.value
                 }
 
                 else -> {

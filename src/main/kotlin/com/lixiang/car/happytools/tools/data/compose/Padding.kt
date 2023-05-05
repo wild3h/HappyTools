@@ -66,6 +66,13 @@ class Padding(start: Any? = null, top: Any? = null, end: Any? = null, bottom: An
         return this
     }
 
+    fun putAll(paddingValue:Int){
+        params["start"] = paddingValue
+        params["top"] = paddingValue
+        params["end"] = paddingValue
+        params["bottom"] = paddingValue
+    }
+
 
     override fun toJson(): String {
         return """
