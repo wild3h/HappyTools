@@ -6,7 +6,7 @@ open class BaseComposeView : BaseJson() {
     var modifier: Modifier? = null
     override val params = JsonHashMap()
 
-    operator fun set(key: String, value: Any) {
+    open operator fun set(key: String, value: Any) {
         when(key){
             "" -> {}
             "modifier" -> modifier = value as Modifier

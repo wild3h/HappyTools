@@ -4,6 +4,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.wm.ToolWindowManager
 import com.lixiang.car.happytools.tools.data.compose.*
+import com.lixiang.car.happytools.tools.util.jsonFormat
 import com.lixiang.car.happytools.tools.util.setTextWrite
 import kastree.ast.Node
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
@@ -66,14 +67,24 @@ object ComposeTransform {
                     val functionName = it.name
                     val body = it.body
                     if (body is Node.Decl.Func.Body.Block) {
+                        val composeViews = arrayListOf<BaseComposeView>()
                         body.block.stmts.forEach { expr ->
                             if (expr is Node.Stmt.Expr) {
                                 val call = expr.expr
                                 if (call is Node.Expr.Call) {
-                                    val dfsFunction = dfsFunction(call)
+                                    val composeView = dfsFunction(call)
+                                    if (composeView is BaseComposeView) {
+                                        composeViews.add(composeView)
+                                    }
                                 }
                             }
                         }
+                        val strBuilder = StringBuilder()
+                        composeViews.forEach {
+                            strBuilder.append(it.toString())
+                        }
+                        val lego = strBuilder.toString().jsonFormat()
+                        editor.document.setTextWrite(lego)
                     }
                 }
 
@@ -83,7 +94,7 @@ object ComposeTransform {
     }
 
 
-    private fun dfsFunction(function: Node.Expr.Call): String? {
+    private fun dfsFunction(function: Node.Expr.Call): BaseJson? {
         function.expr.let {
             when (it) {
                 is Node.Expr.Name -> {
@@ -94,39 +105,51 @@ object ComposeTransform {
                         "Image" -> {
                             CPImage()
                         }
+
                         "Text" -> {
                             CPText()
                         }
+
                         "Box" -> {
                             CPBox()
                         }
-                        "CircularProgressIndicator"->{
+
+                        "CircularProgressIndicator" -> {
                             CPCircularProgressIndicator()
                         }
+
                         "Column" -> {
                             CPColumn()
                         }
+
                         "Divider" -> {
                             CPDivider()
                         }
+
                         "Grid" -> {
                             CPGrid()
                         }
-                        "LazyColumn"->{
+
+                        "LazyColumn" -> {
                             CPLazyColumn()
                         }
-                        "LazyRow"->{
+
+                        "LazyRow" -> {
                             CPLazyRow()
                         }
+
                         "LinearProgressIndicator" -> {
                             CPLinearProgressIndicator()
                         }
+
                         "Spacer" -> {
                             CPSpacer()
                         }
+
                         "Row" -> {
                             CPRow()
                         }
+
                         else -> {
                             null
                         }
@@ -148,7 +171,11 @@ object ComposeTransform {
                                         }
 
                                         is Node.Expr.Call -> {
-                                            dfsFunction(it)
+                                            //Text(style= TextStyle(color = Color.Red))
+                                            if (composeView != null) {
+                                                dfsParams(it, key, composeView)
+                                            }
+                                            null
                                         }
 
                                         is Node.Expr.Name -> {
@@ -199,12 +226,24 @@ object ComposeTransform {
                                     view[key] = str
                                 }
                             }
-                            editor.document.setTextWrite(composeView.toString())
-                            strBuilder.append(str)
                         }
                     }
-                    strBuilder.append(")")
-                    return strBuilder.toString()
+                    function.lambda?.func?.block?.stmts?.forEach {
+                        if (it is Node.Stmt.Expr) {
+                            val call = it.expr
+                            if (call is Node.Expr.Call) {
+                                val childView = dfsFunction(call)
+                                if (composeView is BaseComposeViewGroup) {
+                                    if (childView != null) {
+                                        if (childView is BaseComposeView) {
+                                            composeView.child.add(childView)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    return composeView
                 }
 
                 else -> {}
@@ -213,7 +252,147 @@ object ComposeTransform {
         return null
     }
 
-    private fun dfsModifier(expr: Node.Expr): Modifier? {
+    private fun dfsParams(function: Node.Expr.Call, paramsName: String, composeView: BaseComposeView) {
+        function.expr.let {
+            when (it) {
+                is Node.Expr.Name -> {
+                    val strBuilder = StringBuilder()
+                    strBuilder.append(it.name)
+                    strBuilder.append("(")
+                    val cpParams = CPParams(it.name)
+                    function.args.forEach {
+                        val key = it.name ?: ""
+                        it.expr.let {
+                            val str: String? = when (it) {
+                                is Node.Expr.BinaryOp -> {
+                                    dfsBinaryOp(it)
+                                }
+
+                                is Node.Expr.Call -> {
+                                    dfsCallsForArgs(it)
+                                }
+
+                                is Node.Expr.Name -> {
+                                    it.name
+                                }
+
+                                is Node.Expr.StringTmpl -> {
+                                    val str = StringBuilder()
+                                    it.elems.forEach { elem ->
+                                        when (elem) {
+                                            is Node.Expr.StringTmpl.Elem.Regular -> {
+                                                str.append(elem.str)
+                                            }
+
+                                            is Node.Expr.StringTmpl.Elem.ShortTmpl -> {
+                                                str.append(elem.str)
+                                            }
+
+                                            is Node.Expr.StringTmpl.Elem.UnicodeEsc -> {
+                                                str.append(elem.digits)
+
+                                            }
+
+                                            is Node.Expr.StringTmpl.Elem.RegularEsc -> {
+                                                str.append(elem.char)
+                                            }
+
+                                            is Node.Expr.StringTmpl.Elem.LongTmpl -> {
+                                                str.append(elem.expr)
+                                            }
+                                        }
+                                    }
+                                    str.toString()
+                                }
+
+                                is Node.Expr.Const -> {
+                                    it.value
+                                }
+
+                                else -> {
+                                    null
+                                }
+                            }
+                            str?.let {
+                                cpParams[key] = str
+                            }
+                        }
+                    }
+                    composeView[paramsName] = cpParams
+                }
+
+                else -> {}
+            }
+        }
+    }
+
+    private fun dfsCallsForArgs(call: Node.Expr.Call): String? {
+        val expr = call.expr
+        val strBuilder = StringBuilder()
+        if (expr is Node.Expr.Name) {
+            strBuilder.append(expr.name)
+            strBuilder.append("(")
+            call.args.forEach {
+                it.expr.let {
+                    val str = when (it) {
+                        is Node.Expr.BinaryOp -> {
+                            dfsBinaryOp(it)
+                        }
+
+                        is Node.Expr.Call -> {
+                            dfsCallsForArgs(it)
+                        }
+
+                        is Node.Expr.Name -> {
+                            it.name
+                        }
+
+                        is Node.Expr.StringTmpl -> {
+                            val str = StringBuilder()
+                            it.elems.forEach { elem ->
+                                when (elem) {
+                                    is Node.Expr.StringTmpl.Elem.Regular -> {
+                                        str.append(elem.str)
+                                    }
+
+                                    is Node.Expr.StringTmpl.Elem.ShortTmpl -> {
+                                        str.append(elem.str)
+                                    }
+
+                                    is Node.Expr.StringTmpl.Elem.UnicodeEsc -> {
+                                        str.append(elem.digits)
+
+                                    }
+
+                                    is Node.Expr.StringTmpl.Elem.RegularEsc -> {
+                                        str.append(elem.char)
+                                    }
+
+                                    is Node.Expr.StringTmpl.Elem.LongTmpl -> {
+                                        str.append(elem.expr)
+                                    }
+                                }
+                            }
+                            str.toString()
+                        }
+
+                        is Node.Expr.Const -> {
+                            it.value
+                        }
+
+                        else -> {
+                            null
+                        }
+                    }
+                    strBuilder.append(str)
+                }
+            }
+            strBuilder.append(")")
+        }
+        return strBuilder.toString()
+    }
+
+    private fun dfsModifier(expr: Node.Expr): Modifier {
         val list = dfsCalls(expr)
         val modifier = Modifier()
         list.forEach {
@@ -221,7 +400,7 @@ object ComposeTransform {
                 val name = (it.expr as Node.Expr.Name).name
                 val args = it.args
                 when (name) {
-                    "width", "height","requiredWidth", "requiredHeight" -> {
+                    "width", "height", "requiredWidth", "requiredHeight" -> {
                         //width=100.dp
                         args.forEach { arg ->
                             val expr = arg.expr
@@ -246,8 +425,28 @@ object ComposeTransform {
                     }
 
                     "fillMaxWidth", "fillMaxHeight", "fillMaxSize" -> {
-                        modifier.put(name to "1.0")
+                        if (args.isEmpty()) {
+                            modifier.put(name to 1.0)
+                        } else {
+                            args.forEach { arg ->
+                                val expr = arg.expr
+                                when (expr) {
+                                    is Node.Expr.Const -> {
+                                        val value = expr.value.replace(" ", "").toDouble()
+                                        modifier.put(name to value)
+                                    }
+
+                                    is Node.Expr.BinaryOp -> {
+                                        val binaryOp = dfsBinaryOp(expr) ?: ""
+                                        modifier.put(name to binaryOp)
+                                    }
+
+                                    else -> {}
+                                }
+                            }
+                        }
                     }
+
                     "alpha" -> {
                         args.forEach { arg ->
                             val expr = arg.expr
@@ -258,7 +457,7 @@ object ComposeTransform {
                                 }
 
                                 is Node.Expr.BinaryOp -> {
-                                    val binaryOp = dfsBinaryOp(expr)?:""
+                                    val binaryOp = dfsBinaryOp(expr) ?: ""
                                     modifier.put(name to binaryOp)
                                 }
 
@@ -375,7 +574,7 @@ object ComposeTransform {
                                 }
 
                                 is Node.Expr.BinaryOp -> {
-                                    val binaryOp = dfsBinaryOp(expr)?:""
+                                    val binaryOp = dfsBinaryOp(expr) ?: ""
                                     modifier.put(name to binaryOp)
                                 }
 
@@ -419,7 +618,7 @@ object ComposeTransform {
                 }
 
                 is Node.Expr.Call -> {
-                    dfsFunction(it)
+                    dfsCallsForArgs(it)
                 }
 
                 is Node.Expr.Name -> {
@@ -455,7 +654,7 @@ object ComposeTransform {
                 }
 
                 is Node.Expr.Call -> {
-                    dfsFunction(it)
+                    dfsCallsForArgs(it)
                 }
 
                 is Node.Expr.Name -> {

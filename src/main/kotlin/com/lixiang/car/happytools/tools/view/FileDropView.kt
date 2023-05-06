@@ -14,7 +14,7 @@ import javax.swing.JPanel
 import javax.swing.TransferHandler
 import kotlin.math.max
 
-class FileDropView(val getKeyWords: () -> List<String>, onSuccess: (listData: ArrayList<SequenceDiagramElement>) -> Unit, onProgress: ((Int) -> Unit)?) : JPanel() {
+class FileDropView(val getKeyWords: () -> List<String>, val getNoKeyWords: () -> List<String>,onSuccess: (listData: ArrayList<SequenceDiagramElement>) -> Unit, onProgress: ((Int) -> Unit)?) : JPanel() {
     private val defaultText = "如果过滤本地*.log文件，请将文件拖拽到此处"
     private val textArea: JBLabel = JBLabel(defaultText)
     private val minWidth = 200
@@ -25,7 +25,7 @@ class FileDropView(val getKeyWords: () -> List<String>, onSuccess: (listData: Ar
         add(textArea)
         add(JButton("过滤本地文件，运行点这里").apply {
             addActionListener {
-                DownloadManager.analysisLog(dropFileList, keyWords = getKeyWords(), onSuccess = onSuccess, onProgress = onProgress)
+                DownloadManager.analysisLog(dropFileList, keyWords = getKeyWords(), noKeyWords = getNoKeyWords(), onSuccess = onSuccess, onProgress = onProgress)
             }
         })
         add(JButton("清空").apply {

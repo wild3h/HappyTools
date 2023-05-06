@@ -100,6 +100,16 @@ class DiagramToolWindow : BaseToolWindow() {
         }
     }
 
+    private val noWordsTextArea = ToolTextField(300)
+    private val noWordsLine by lazy {
+        jHorizontalLinearLayout {
+            add(JBLabel("避免词：(同过滤词，包含避免词的行将不被保存)").apply {
+                minimumSize = Dimension(10, 30)
+            })
+            add(noWordsTextArea)
+        }
+    }
+
     private val progressBar by lazy {
         JProgressBar().apply {
             preferredSize = Dimension(400, 10)
@@ -170,7 +180,9 @@ class DiagramToolWindow : BaseToolWindow() {
     private val fileDrop by lazy {
         FileDropView({
             return@FileDropView wordsTextArea.text.split(',')
-        }, onSuccess = { res ->
+        }, {
+            return@FileDropView noWordsTextArea.text.split(',')
+        },onSuccess = { res ->
             progressBar.isVisible = false
             sequenceDiagramPanel.setElements(res)
             lifecycleSelector.setValues(arrayListOf<String>().apply {
@@ -232,7 +244,8 @@ class DiagramToolWindow : BaseToolWindow() {
                     logTypeComboBox.selectedItem?.toString() ?: "",
                     endJXDatePicker.getFormatDate(format),
                     startJXDatePicker.getFormatDate(format),
-                    vinConfigPanel.text
+                    vinConfigPanel.text,
+                    noWordsTextArea.text.split(',')
                 )
                 DownloadManager.download(project, config, 1, sequenceDiagramPanel, onSuccess = {
                     progressBar.isVisible = false
@@ -324,6 +337,7 @@ class DiagramToolWindow : BaseToolWindow() {
             defaultDownloadLine,
 
             wordsLine,
+            noWordsLine,
             progressBar,
             openFolder,
             runLine
@@ -340,9 +354,10 @@ class DiagramToolWindow : BaseToolWindow() {
 
         wordsLine.topToBottom(timeLine)
         wordsLine.leftToLeft(timeLine)
-
-        runLine.topToBottom(wordsLine)
-        runLine.leftToLeft(wordsLine)
+        noWordsLine.topToBottom(wordsLine)
+        noWordsLine.leftToLeft(wordsLine)
+        runLine.topToBottom(noWordsLine)
+        runLine.leftToLeft(noWordsLine)
 
         sequenceDiagramPanel.topToBottom(runLine, 20)
         sequenceDiagramPanel.leftToLeft(firstLine)

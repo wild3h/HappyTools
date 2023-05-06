@@ -87,14 +87,18 @@ object DownloadManager {
                                 for (logFile in logFiles) {
                                     val br = BufferedReader(FileReader(logFile))
                                     var line: String? = null
-                                    while (br.readLine()?.also {
+                                    readLine@ while (br.readLine()?.also{
                                             line = it
                                         } != null) {
+                                        val lineStr = line.toString()
+                                        val contains = config.key_no_word.any { lineStr.contains(it) }
+                                        if (contains){
+                                            continue@readLine
+                                        }
                                         config.key_word.forEach { keyWord ->
                                             if (keyWord.isBlank()) {
                                                 return@forEach
                                             }
-                                            val lineStr = line.toString()
                                             if (lineStr.contains(keyWord)) {
                                                 val pattern = Regex("\\d{4}-\\d{2}-\\d{2}\\ \\d{2}:\\d{2}:\\d{2}.\\d{3}")
                                                 val matches = pattern.findAll(lineStr).map { it.value }.toList()
@@ -203,7 +207,7 @@ object DownloadManager {
     }
 
     //分析日志
-    fun analysisLog(fileList: List<String>, keyWords: List<String>, onSuccess: (listData: ArrayList<SequenceDiagramElement>) -> Unit, onProgress: ((Int) -> Unit)? = null) {
+    fun analysisLog(fileList: List<String>, keyWords: List<String>,noKeyWords: List<String>, onSuccess: (listData: ArrayList<SequenceDiagramElement>) -> Unit, onProgress: ((Int) -> Unit)? = null) {
         try {
             GlobalScope.launch {
                 val listData = withContext(Dispatchers.IO) {
@@ -211,14 +215,18 @@ object DownloadManager {
                     fileList.forEachIndexed { index, logFile ->
                         val br = BufferedReader(FileReader(logFile))
                         var line: String? = null
-                        while (br.readLine()?.also {
+                        readLine@ while (br.readLine()?.also {
                                 line = it
                             } != null) {
+                            val lineStr = line.toString()
+                            val contains = noKeyWords.any { lineStr.contains(it) }
+                            if (contains){
+                                continue@readLine
+                            }
                             keyWords.forEach { keyWord ->
                                 if (keyWord.isBlank()) {
                                     return@forEach
                                 }
-                                val lineStr = line.toString()
                                 if (lineStr.contains(keyWord)) {
                                     val pattern = Regex("\\d{4}-\\d{2}-\\d{2}\\ \\d{2}:\\d{2}:\\d{2}.\\d{3}")
                                     val matches = pattern.findAll(lineStr).map { it.value }.toList()
