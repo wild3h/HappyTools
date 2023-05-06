@@ -33,4 +33,8 @@ class JsonHashMap : BaseJson() {
     operator fun set(key: String, value: Any) {
         params[key] = value
     }
+
+    fun containsKey(key: String): Boolean {
+        return params.containsKey(key)
+    }
 }

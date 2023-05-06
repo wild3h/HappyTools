@@ -164,6 +164,13 @@ object ComposeTransform {
                                     null
                                 }
 
+                                "contentPadding" -> {
+                                    if (composeView != null) {
+                                        dfsContentPadding(it, composeView, key)
+                                    }
+                                    null
+                                }
+
                                 else -> {
                                     when (it) {
                                         is Node.Expr.BinaryOp -> {
@@ -250,6 +257,79 @@ object ComposeTransform {
             }
         }
         return null
+    }
+
+    private fun dfsContentPadding(it: Node.Expr, composeView: BaseComposeView, key: String) {
+        val padding = Padding()
+        if (it is Node.Expr.Call) {
+            val paddingArgs = it.args
+            if (paddingArgs.size == 1) {
+                val arg = paddingArgs.first()
+                if (arg.name == null) {
+                    val expr = arg.expr
+                    when (expr) {
+                        is Node.Expr.Const -> {
+                            val value = expr.value.replace(" ", "").toDouble().toInt()
+                            padding.putAll(value)
+                        }
+
+                        is Node.Expr.BinaryOp -> {
+                            val binaryOp = expr
+                            val const = binaryOp.lhs
+                            if (const is Node.Expr.Const) {
+                                val value = const.value.replace(" ", "").toDouble().toInt()
+                                padding.putAll(value)
+                            }
+                        }
+
+                        else -> {}
+                    }
+                } else {
+                    val name = arg.name ?: "default"
+                    val expr = arg.expr
+                    when (expr) {
+                        is Node.Expr.Const -> {
+                            val value = expr.value.replace(" ", "").toDouble().toInt()
+                            padding.put(name to value)
+                        }
+
+                        is Node.Expr.BinaryOp -> {
+                            val binaryOp = expr
+                            val const = binaryOp.lhs
+                            if (const is Node.Expr.Const) {
+                                val value = const.value.replace(" ", "").toDouble().toInt()
+                                padding.put(name to value)
+                            }
+                        }
+
+                        else -> {}
+                    }
+                }
+            } else {
+                paddingArgs.forEach { arg ->
+                    val argName = arg.name ?: "default"
+                    val expr = arg.expr
+                    when (expr) {
+                        is Node.Expr.Const -> {
+                            val value = expr.value.replace(" ", "").toDouble().toInt()
+                            padding.put(argName to value)
+                        }
+
+                        is Node.Expr.BinaryOp -> {
+                            val binaryOp = expr
+                            val const = binaryOp.lhs
+                            if (const is Node.Expr.Const) {
+                                val value = const.value.replace(" ", "").toDouble().toInt()
+                                padding.put(argName to value)
+                            }
+                        }
+
+                        else -> {}
+                    }
+                }
+            }
+        }
+        composeView[key] = padding.toJson()
     }
 
     private fun dfsParams(function: Node.Expr.Call, paramsName: String, composeView: BaseComposeView) {
@@ -533,7 +613,7 @@ object ComposeTransform {
                                 }
                             }
                         }
-                        modifier.put(name to padding)
+                        modifier.putPadding(padding)
                     }
 
                     else -> {

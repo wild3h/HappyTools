@@ -30,7 +30,13 @@ class Modifier: BaseJson()  {
     }
 
     fun putPadding(padding: Padding): Modifier {
-        params["padding"] = padding
+        var key = "padding"
+        var i = 0
+        while (params.containsKey(key)) {
+            i++
+            key = "padding$i"
+        }
+        params[key] = padding
         return this
     }
 

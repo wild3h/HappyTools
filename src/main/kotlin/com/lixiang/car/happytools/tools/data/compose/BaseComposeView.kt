@@ -7,9 +7,24 @@ open class BaseComposeView : BaseJson() {
     override val params = JsonHashMap()
 
     open operator fun set(key: String, value: Any) {
-        when(key){
+        when (key) {
             "" -> {}
             "modifier" -> modifier = value as Modifier
+            "horizontalArrangement", "verticalArrangement" -> {
+                if (value.toString().contains("Arrangement.")) {
+                    params[key] = value.toString().replace("Arrangement.", "")
+                } else {
+                    params[key] = value
+                }
+            }
+            "contentAlignment", "horizontalAlignment", "verticalAlignment" -> {
+                if (value.toString().contains("Alignment.")) {
+                    params[key] = value.toString().replace("Alignment.", "")
+                } else {
+                    params[key] = value
+                }
+            }
+
             else -> params[key] = value
         }
     }
@@ -47,7 +62,7 @@ open class BaseComposeView : BaseJson() {
         @JvmStatic
         fun main(args: Array<String>) {
             val baseComposeView = BaseComposeView()
-            baseComposeView.modifier = Modifier().putWidth(1).putHeight(2).putPadding(Padding(1,2,3,4))
+            baseComposeView.modifier = Modifier().putWidth(1).putHeight(2).putPadding(Padding(1, 2, 3, 4))
             baseComposeView.params["width"] = 1
             println(baseComposeView.toString())
         }

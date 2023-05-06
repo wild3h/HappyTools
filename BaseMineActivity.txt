@@ -26,9 +26,11 @@ class BaseMineActivity {
                 bitmap = LegoR.drawableAsImageBitmap(id = "mine_btn_edit"),
                 contentDescription = resources.getString(R.string.mine_detail_edit),
                 modifier = Modifier
+                    .padding(start = 3.dp, end = 6.dp, top = 6.dp, bottom = 6.dp)
                     .width(140.dp)
                     .height(140.dp)
                     .alpha(0.5)
+                    .padding(start = 6.dp, end = 6.dp, top = 6.dp, bottom = 6.dp)
                     .padding(start = 6.dp, end = 6.dp, top = 6.dp, bottom = 6.dp)
                     .fillMaxWidth()
                     .clickable {
