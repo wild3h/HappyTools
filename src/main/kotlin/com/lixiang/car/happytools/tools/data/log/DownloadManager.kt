@@ -87,12 +87,18 @@ object DownloadManager {
                                 for (logFile in logFiles) {
                                     val br = BufferedReader(FileReader(logFile))
                                     var line: String? = null
-                                    readLine@ while (br.readLine()?.also{
+                                    readLine@ while (br.readLine()?.also {
                                             line = it
                                         } != null) {
                                         val lineStr = line.toString()
-                                        val contains = config.key_no_word.any { lineStr.contains(it) }
-                                        if (contains){
+                                        val contains = config.key_no_word.any {
+                                            if (it.isBlank() or it.isEmpty()) {
+                                                false
+                                            } else {
+                                                lineStr.contains(it)
+                                            }
+                                        }
+                                        if (contains) {
                                             continue@readLine
                                         }
                                         config.key_word.forEach { keyWord ->
@@ -207,7 +213,7 @@ object DownloadManager {
     }
 
     //分析日志
-    fun analysisLog(fileList: List<String>, keyWords: List<String>,noKeyWords: List<String>, onSuccess: (listData: ArrayList<SequenceDiagramElement>) -> Unit, onProgress: ((Int) -> Unit)? = null) {
+    fun analysisLog(fileList: List<String>, keyWords: List<String>, noKeyWords: List<String>, onSuccess: (listData: ArrayList<SequenceDiagramElement>) -> Unit, onProgress: ((Int) -> Unit)? = null) {
         try {
             GlobalScope.launch {
                 val listData = withContext(Dispatchers.IO) {
@@ -219,8 +225,14 @@ object DownloadManager {
                                 line = it
                             } != null) {
                             val lineStr = line.toString()
-                            val contains = noKeyWords.any { lineStr.contains(it) }
-                            if (contains){
+                            val contains = noKeyWords.any {
+                                if (it.isBlank() or it.isEmpty()) {
+                                    false
+                                } else {
+                                    lineStr.contains(it)
+                                }
+                            }
+                            if (contains) {
                                 continue@readLine
                             }
                             keyWords.forEach { keyWord ->
